@@ -1,3 +1,10 @@
+
 [build]
   command = "npm --prefix frontend install && npm --prefix frontend run build"
   publish = "frontend/dist"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://ahoban-blood-donation-organization.onrender.com/api/:splat"
+  status = 200
+  force = true
