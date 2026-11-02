@@ -4,12 +4,6 @@ export const experienceApi = {
   list: ({ page = 1, limit = 9 } = {}) =>
     apiRequest(`/experiences?page=${page}&limit=${limit}`),
   mine: () => apiRequest('/experiences/mine'),
-  moderationQueue: () => apiRequest('/experiences/moderation/queue'),
-  moderate: (id, status) =>
-    apiRequest(`/experiences/${encodeURIComponent(id)}/moderation`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    }),
   react: (id, type = 'love') =>
     apiRequest(`/experiences/${encodeURIComponent(id)}/reactions`, {
       method: 'POST',

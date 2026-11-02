@@ -39,12 +39,11 @@ async function getPublicProfile(identifier) {
 
   if (!user.isSearchable) {
     const [hasPublicPost, commentPostIds] = await Promise.all([
-      Experience.exists({ userId: user._id, status: 'approved', isPublic: true }),
+      Experience.exists({ userId: user._id, isPublic: true }),
       ExperienceComment.distinct('experienceId', { userId: user._id }),
     ])
     const hasPublicComment = commentPostIds.length > 0 && await Experience.exists({
       _id: { $in: commentPostIds },
-      status: 'approved',
       isPublic: true,
     })
     if (!hasPublicPost && !hasPublicComment) {
@@ -153,6 +152,9 @@ async function deleteProfile(userId) {
   ensureDatabase()
   const user = await User.findById(userId)
   if (!user) throw new HttpError(404, 'PROFILE_NOT_FOUND', 'The user profile was not found.')
+  if (user.role === 'super_admin') {
+    throw new HttpError(403, 'SUPER_ADMIN_PROTECTED', 'The Super Admin account cannot be deleted here.')
+  }
   await deleteUserInteractions(userId)
   await User.deleteOne({ _id: userId })
   await removeAvatar(user.profilePhotoUrl)

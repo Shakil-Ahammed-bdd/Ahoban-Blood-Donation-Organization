@@ -17,9 +17,21 @@ if (
   )
   process.exitCode = 1
 } else {
-  app.listen(port, () => {
-    console.info(`API server listening on http://localhost:${port}`)
-  })
+  async function startServer() {
+    const databaseConnected = await connectDatabase(process.env.MONGODB_URI)
+    if (process.env.NODE_ENV === 'production' && !databaseConnected) {
+      console.error('Production startup aborted because database initialization did not complete.')
+      process.exitCode = 1
+      return
+    }
 
-  connectDatabase(process.env.MONGODB_URI)
+    app.listen(port, () => {
+      console.info(`API server listening on http://localhost:${port}`)
+    })
+  }
+
+  startServer().catch((error) => {
+    console.error(`API startup failed: ${error.message}`)
+    process.exitCode = 1
+  })
 }

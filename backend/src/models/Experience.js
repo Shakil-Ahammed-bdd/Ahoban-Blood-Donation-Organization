@@ -35,20 +35,14 @@ const experienceSchema = new mongoose.Schema(
       },
     },
     photoUrl: { type: String, maxlength: 500 },
-    isPublic: { type: Boolean, required: true, default: false },
+    isPublic: { type: Boolean, required: true, default: true },
     // Kept during the transition from the original explicit-consent field.
-    publicConsent: { type: Boolean, required: true, default: false },
-    status: {
-      type: String,
-      enum: ['pending', 'approved', 'rejected'],
-      required: true,
-      default: 'pending',
-    },
+    publicConsent: { type: Boolean, required: true, default: true },
   },
   { timestamps: true },
 )
 
-experienceSchema.index({ isPublic: 1, status: 1, donationDate: -1, createdAt: -1 })
+experienceSchema.index({ isPublic: 1, donationDate: -1, createdAt: -1 })
 experienceSchema.index({ userId: 1, createdAt: -1 })
 
 module.exports =

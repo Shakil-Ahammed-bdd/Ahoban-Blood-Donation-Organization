@@ -28,7 +28,7 @@ function cookieOptions() {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/api',
   }
 }
@@ -69,6 +69,9 @@ async function authenticate(req, res, next) {
     if (!user) {
       throw new HttpError(401, 'AUTH_REQUIRED', 'Please sign in to continue.')
     }
+    if (user.isActive === false) {
+      throw new HttpError(403, 'ACCOUNT_DISABLED', 'This account is disabled. Contact an administrator.')
+    }
 
     req.user = user
     next()
@@ -85,4 +88,22 @@ function clearSession(res) {
   res.clearCookie(COOKIE_NAME, cookieOptions())
 }
 
-module.exports = { authenticate, clearSession, issueSession }
+function requireRole(...allowedRoles) {
+  const roles = new Set(allowedRoles.filter(Boolean))
+  return function enforceRole(req, res, next) {
+    if (!req.user) {
+      return next(new HttpError(401, 'AUTH_REQUIRED', 'Please sign in to continue.'))
+    }
+    const userRole = req.user.role || 'user'
+    if (!roles.has(userRole)) {
+      return next(new HttpError(403, 'FORBIDDEN', 'You do not have permission to access this resource.'))
+    }
+    next()
+  }
+}
+
+function requireSuperAdmin(req, res, next) {
+  return requireRole('super_admin')(req, res, next)
+}
+
+module.exports = { authenticate, clearSession, issueSession, requireRole, requireSuperAdmin }

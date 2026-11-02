@@ -1378,17 +1378,6 @@
   white-space: nowrap;
 }
 
-.experience-post-header > .experience-status {
-  right: 12px;
-  bottom: auto;
-  top: 12px;
-  font-size: 9px;
-}
-
-.experience-post-header:has(.experience-status) .experience-author-link {
-  padding-right: 74px;
-}
-
 .experience-social-summary {
   display: flex;
   align-items: center;
@@ -2928,12 +2917,6 @@
   background: #0b0e15;
 }
 
-.profile-experience-list .experience-status {
-  position: static;
-  display: inline-flex;
-  margin-bottom: 8px;
-}
-
 .profile-experience-list p {
   margin: 0 0 7px;
   color: #e0e1e5;
@@ -2970,15 +2953,6 @@
     width: 30px;
     height: 30px;
     flex-basis: 30px;
-  }
-
-  .experience-post-header:has(.experience-status) .experience-author-link {
-    padding-right: 0;
-  }
-
-  .experience-post-header > .experience-status {
-    position: static;
-    align-self: flex-start;
   }
 
   .profile-experiences-heading {
@@ -3074,10 +3048,6 @@
   color: #fff;
   font-size: 26px;
   font-weight: 750;
-}
-
-.experience-gallery > .experience-status {
-  z-index: 2;
 }
 
 .experience-card blockquote {
@@ -3327,28 +3297,6 @@
 
 .experience-card:hover .experience-card-photo img {
   transform: scale(1.035);
-}
-
-.experience-status {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  padding: 6px 10px;
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 999px;
-  background: rgb(8 10 16 / 88%);
-  color: #ffd778;
-  font-size: 11px;
-  font-weight: 700;
-  backdrop-filter: blur(8px);
-}
-
-.experience-status.is-approved {
-  color: #88e1b0;
-}
-
-.experience-status.is-rejected {
-  color: #ff8f98;
 }
 
 .experience-card-content {

@@ -31,6 +31,7 @@ function Navbar() {
   const initials = fullName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => Array.from(part)[0]).join('')
   const profilePhotoUrl = user?.profilePhotoUrl || ''
   const avatarError = avatarErrorUrl === profilePhotoUrl
+  const roleLabel = user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : ''
 
   useEffect(() => {
     function closeOnEscape(event) {
@@ -160,6 +161,7 @@ function Navbar() {
                     )}
                 </span>
                 <span className="nav-profile-name">{fullName}</span>
+                {roleLabel && <span className="nav-profile-role">{roleLabel}</span>}
                 <span aria-hidden="true" className="nav-profile-chevron">⌄</span>
               </button>
               {profileOpen && (
@@ -170,6 +172,11 @@ function Navbar() {
                   <Link className="profile-menu-link" onClick={closeMenu} role="menuitem" to="/profile?edit=1">
                     {t('প্রোফাইল সম্পাদনা')}
                   </Link>
+                  {['admin', 'super_admin'].includes(user?.role) && (
+                    <Link className="profile-menu-link" onClick={closeMenu} role="menuitem" to="/admin">
+                      {t('অ্যাডমিন ড্যাশবোর্ড')}
+                    </Link>
+                  )}
                   <button className="profile-menu-link profile-menu-logout" onClick={handleLogout} role="menuitem" type="button">
                     {t('লগ আউট')}
                   </button>

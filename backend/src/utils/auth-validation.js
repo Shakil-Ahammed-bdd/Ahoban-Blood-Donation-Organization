@@ -203,6 +203,34 @@ function validateLogin(body) {
   return { identifier, password }
 }
 
+function validateAdminCreation(body) {
+  const fieldErrors = {}
+  const allowedFields = new Set(['fullName', 'email', 'phone', 'password', 'isActive'])
+  for (const key of Object.keys(body || {})) {
+    if (!allowedFields.has(key)) fieldErrors[key] = 'This field cannot be submitted here.'
+  }
+  const fullName = readString(body, 'fullName', fieldErrors, { min: 2, max: 100 })
+  const email = readString(body, 'email', fieldErrors, { max: 254 }).toLowerCase()
+  const phone = readString(body, 'phone', fieldErrors, { max: 16 })
+  const password = readString(body, 'password', fieldErrors, { min: 12, max: 72, trim: false })
+  if (email && !EMAIL_PATTERN.test(email)) fieldErrors.email = 'Enter a valid email address.'
+  if (phone && !PHONE_PATTERN.test(phone.replace(/[\s-]/g, ''))) {
+    fieldErrors.phone = 'Enter a valid Bangladesh mobile number.'
+  }
+  if (password && Buffer.byteLength(password, 'utf8') > 72) {
+    fieldErrors.password = 'Password must not exceed 72 UTF-8 bytes.'
+  }
+  const isActive = readBoolean(body?.isActive, 'isActive', fieldErrors, true)
+  if (Object.keys(fieldErrors).length) validationError(fieldErrors)
+  return {
+    fullName,
+    email,
+    phone: phone.replace(/[\s-]/g, ''),
+    password,
+    isActive,
+  }
+}
+
 const PROFILE_FIELDS = new Set([
   'fullName',
   'phone',
@@ -286,4 +314,10 @@ function validateProfileUpdate(body, currentProfile) {
   return input
 }
 
-module.exports = { validateDonationDate, validateLogin, validateProfileUpdate, validateRegistration }
+module.exports = {
+  validateAdminCreation,
+  validateDonationDate,
+  validateLogin,
+  validateProfileUpdate,
+  validateRegistration,
+}

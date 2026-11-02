@@ -171,7 +171,6 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
               <time dateTime={experience.createdAt}>{formatDate(experience.createdAt)}</time>
             </span>
           </Link>
-          {owner && <span className={`experience-status is-${experience.status}`}>{t(experience.status === 'pending' ? 'অনুমোদনের অপেক্ষায়' : experience.status === 'approved' ? 'প্রকাশিত' : 'অনুমোদিত হয়নি')}</span>}
         </header>
         <div className={`experience-gallery experience-gallery-count-${Math.min(images.length, 5)}`}>
           {images.slice(0, 4).map((image, index) => (
@@ -198,30 +197,26 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
             <span>🗓 {t('রক্তদানের তারিখ:')} {formatDate(experience.donationDate, { dateStyle: 'medium' }, language)}</span>
             {experience.donationCount && <span>🩸 {experience.donationCount} {t('বার')}</span>}
           </div>
-          {experience.status === 'approved' && (
-            <div className="experience-social-summary">
-              <span aria-label={`${reactionCount} ${t('প্রতিক্রিয়া')}`}>❤️ {reactionCount} {t('প্রতিক্রিয়া')}</span>
-              <button aria-label={t('{count}টি মন্তব্য দেখুন', { count: commentCount })} onClick={toggleComments} type="button">
-                💬 {commentCount} {t('মন্তব্য')}
-              </button>
-            </div>
-          )}
-          {experience.status === 'approved' && (
-            <div className="experience-social-actions">
-              <button
-                aria-pressed={currentReaction === 'love'}
-                className={currentReaction === 'love' ? 'is-reacted' : ''}
-                disabled={reactionSaving}
-                onClick={toggleReaction}
-                type="button"
-              >
-                ❤️ {currentReaction === 'love' ? t('ভালোবাসা জানিয়েছেন') : t('প্রতিক্রিয়া জানান')}
-              </button>
-              <button aria-expanded={commentsOpen} onClick={toggleComments} type="button">💬 {t('মন্তব্য করুন')}</button>
-            </div>
-          )}
-          {socialActionError &&           <p className="experience-comment-error" role="alert">{t(socialActionError)}</p>}
-          {commentsOpen && experience.status === 'approved' && (
+          <div className="experience-social-summary">
+            <span aria-label={`${reactionCount} ${t('প্রতিক্রিয়া')}`}>❤️ {reactionCount} {t('প্রতিক্রিয়া')}</span>
+            <button aria-label={t('{count}টি মন্তব্য দেখুন', { count: commentCount })} onClick={toggleComments} type="button">
+              💬 {commentCount} {t('মন্তব্য')}
+            </button>
+          </div>
+          <div className="experience-social-actions">
+            <button
+              aria-pressed={currentReaction === 'love'}
+              className={currentReaction === 'love' ? 'is-reacted' : ''}
+              disabled={reactionSaving}
+              onClick={toggleReaction}
+              type="button"
+            >
+              ❤️ {currentReaction === 'love' ? t('ভালোবাসা জানিয়েছেন') : t('প্রতিক্রিয়া জানান')}
+            </button>
+            <button aria-expanded={commentsOpen} onClick={toggleComments} type="button">💬 {t('মন্তব্য করুন')}</button>
+          </div>
+          {socialActionError && <p className="experience-comment-error" role="alert">{t(socialActionError)}</p>}
+          {commentsOpen && (
             <section aria-label={t('{name} এর পোস্টের মন্তব্য', { name: experience.donorName })} className="experience-comments">
               {commentsLoading && <p className="experience-comment-state" role="status">{t('মন্তব্য লোড হচ্ছে…')}</p>}
               {commentsError && <p className="experience-comment-error" role="alert">{t(commentsError)}</p>}

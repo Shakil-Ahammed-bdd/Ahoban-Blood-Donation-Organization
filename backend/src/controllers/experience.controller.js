@@ -40,34 +40,13 @@ async function listMine(req, res, next) {
   }
 }
 
-async function listModerationQueue(req, res, next) {
-  try {
-    const experiences = await experienceService.listExperiencesForModeration()
-    res.json({ success: true, status: 'ok', experiences })
-  } catch (error) {
-    next(error)
-  }
-}
-
-async function moderate(req, res, next) {
-  try {
-    const experience = await experienceService.moderateExperience(
-      req.params.id,
-      req.body?.status,
-    )
-    res.json({ success: true, status: 'ok', experience })
-  } catch (error) {
-    next(error)
-  }
-}
-
 async function create(req, res, next) {
   try {
     const experience = await experienceService.createExperience(req.user, req.body, req.files)
     res.status(201).json({
       success: true,
       status: 'ok',
-      message: 'Experience submitted successfully and is pending moderation.',
+      message: 'Experience submitted successfully and is now public.',
       data: { experience },
       experience,
     })
@@ -87,7 +66,7 @@ async function update(req, res, next) {
     res.json({
       success: true,
       status: 'ok',
-      message: 'Experience updated successfully and is pending moderation.',
+      message: 'Experience updated successfully and remains public.',
       data: { experience },
       experience,
     })
@@ -108,9 +87,7 @@ async function remove(req, res, next) {
 module.exports = {
   create,
   listMine,
-  listModerationQueue,
   listPublic,
-  moderate,
   readPublic,
   remove,
   update,

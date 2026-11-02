@@ -41,8 +41,6 @@ function DonorExperiences() {
   const [retry, setRetry] = useState(0)
   const [feed, setFeed] = useState({ experiences: [], pagination: null })
   const [mineState, setMineState] = useState({ userId: null, experiences: [], error: '' })
-  const [moderationQueueState, setModerationQueueState] = useState(null)
-  const [moderationSavingId, setModerationSavingId] = useState('')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [modal, setModal] = useState(null)
@@ -69,14 +67,6 @@ function DonorExperiences() {
   const mineError = authStatus === 'authenticated' && mineState.userId === user?.id
     ? mineState.error
     : ''
-  const moderationState = moderationQueueState?.userId === user?.id
-    ? moderationQueueState
-    : null
-  const moderationQueue = moderationState?.experiences || []
-  const moderationError = moderationState?.error || ''
-  const moderationLoading = authStatus === 'authenticated' &&
-    user?.isExperienceModerator &&
-    !moderationState
   const ownedExperienceIds = new Set(mine.map(({ id }) => id))
 
   useEffect(() => () => {
@@ -137,29 +127,6 @@ function DonorExperiences() {
     )
     return () => { active = false }
   }, [authStatus, editId, refresh, retry, setSearchParams, user?.id])
-
-  useEffect(() => {
-    if (authStatus !== 'authenticated' || !user?.isExperienceModerator || !user?.id) return undefined
-
-    let active = true
-    experienceApi.moderationQueue().then(
-      ({ experiences }) => {
-        if (active) {
-          setModerationQueueState({ userId: user.id, experiences, error: '' })
-        }
-      },
-      (requestError) => {
-        if (active) {
-          setModerationQueueState({
-            userId: user.id,
-            experiences: [],
-            error: translateErrorMessage(requestError, translationRef.current),
-          })
-        }
-      },
-    )
-    return () => { active = false }
-  }, [authStatus, retry, user?.id, user?.isExperienceModerator])
 
   function openCreate() {
     if (authStatus !== 'authenticated') {
@@ -244,35 +211,6 @@ function DonorExperiences() {
       setMineState({ userId: user.id, experiences: mineResult.value.experiences, error: '' })
     } else {
       setMineState({ userId: user.id, experiences: [], error: mineResult.reason.message })
-    }
-  }
-
-  async function moderateExperience(experience, status) {
-    if (moderationSavingId) return
-    setModerationSavingId(experience.id)
-    try {
-      await experienceApi.moderate(experience.id, status)
-      setModerationQueueState((current) => current?.userId === user?.id
-        ? {
-            ...current,
-            experiences: current.experiences.filter(({ id }) => id !== experience.id),
-            error: '',
-          }
-        : current)
-      setMineState((current) => ({
-        ...current,
-        experiences: current.experiences.map((item) =>
-          item.id === experience.id ? { ...item, status } : item,
-        ),
-      }))
-      if (page === 1) setRetry((current) => current + 1)
-      else setPage(1)
-    } catch (requestError) {
-      setModerationQueueState((current) => current?.userId === user?.id
-        ? { ...current, error: translateErrorMessage(requestError, t) }
-        : { userId: user.id, experiences: [], error: translateErrorMessage(requestError, t) })
-    } finally {
-      setModerationSavingId('')
     }
   }
 
@@ -364,48 +302,12 @@ function DonorExperiences() {
         {notice && <p aria-live="polite" className="experience-notice" role="status">{t(notice)}</p>}
         {error && !modal && <p aria-live="polite" className="experience-error" role="alert">{t(error)}</p>}
 
-        {authStatus === 'authenticated' && user?.isExperienceModerator && (
-          <section aria-labelledby="experience-moderation-title" className="my-experiences">
-            <h2 id="experience-moderation-title">{t('গল্প পর্যালোচনা')}</h2>
-            {moderationError && <p className="experience-error" role="alert">{t(moderationError)}</p>}
-            {moderationLoading && <p className="experience-state" role="status">{t('পর্যালোচনার গল্প লোড হচ্ছে…')}</p>}
-            {!moderationLoading && moderationQueue.length === 0 && (
-              <p className="experience-state">{t('পর্যালোচনার জন্য কোনো গল্প অপেক্ষায় নেই।')}</p>
-            )}
-            {moderationQueue.length > 0 && (
-              <div className="experience-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                {moderationQueue.map((experience) => (
-                  <div key={experience.id}>
-                    <DonorExperienceCard experience={experience} />
-                    <div className="experience-owner-actions">
-                      <button
-                        disabled={Boolean(moderationSavingId)}
-                        onClick={() => moderateExperience(experience, 'approved')}
-                        type="button"
-                      >
-                        {moderationSavingId === experience.id ? t('সংরক্ষণ হচ্ছে…') : t('অনুমোদন করুন')}
-                      </button>
-                      <button
-                        disabled={Boolean(moderationSavingId)}
-                        onClick={() => moderateExperience(experience, 'rejected')}
-                        type="button"
-                      >
-                        {t('প্রত্যাখ্যান করুন')}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
         {authStatus === 'authenticated' && mine.length > 0 && (
           <section aria-labelledby="my-experiences-title" className="my-experiences">
             <h3 id="my-experiences-title">{t('আপনার শেয়ার করা অনুভূতি')}</h3>
             {mineError && <p className="experience-error" role="alert">{t(mineError)}</p>}
             <div className="experience-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {mine.filter(({ status }) => status !== 'approved').map((experience) => (
+              {mine.map((experience) => (
                 <DonorExperienceCard
                   experience={experience}
                   key={`${experience.id}:${experience.updatedAt}:${experience.reactionCount}:${experience.commentCount}:${experience.currentReaction}`}
@@ -429,7 +331,7 @@ function DonorExperiences() {
           </div>
         )}
         {!loading && !loadError && feed.experiences.length === 0 && (
-          <p className="experience-state" role="status">{t('এখনো কোনো অনুমোদিত দাতার অনুভূতি প্রকাশিত হয়নি। আপনি চাইলে আপনার গল্পটি শেয়ার করতে পারেন।')}</p>
+          <p className="experience-state" role="status">{t('এখনো কোনো পাবলিক দাতার অনুভূতি প্রকাশিত হয়নি। আপনি চাইলে আপনার গল্পটি শেয়ার করতে পারেন।')}</p>
         )}
         {!loading && !loadError && feed.experiences.length > 0 && (
           <>
@@ -543,11 +445,11 @@ function DonorExperiences() {
               </label>
               <label className="experience-consent">
                 <input checked={form.publicConsent} name="publicConsent" onChange={updateForm} type="checkbox" />
-                <span>{t('আমার অনুভূতি ও ছবি সবার জন্য প্রকাশ করতে সম্মত। প্রকাশের আগে এটি অনুমোদনের জন্য পর্যালোচনা করা হবে।')}</span>
+                <span>{t('আমার অনুভূতি ও ছবি সবার জন্য প্রকাশ করতে সম্মত। জমা দেওয়ার পরপরই এটি প্রকাশিত হবে।')}</span>
               </label>
               {fieldErrors.publicConsent && <small className="experience-field-error">{t(fieldErrors.publicConsent)}</small>}
               <button className="button button-primary experience-submit" disabled={saving} type="submit">
-                {saving ? t('জমা হচ্ছে…') : currentExperience ? t('পর্যালোচনার জন্য পাঠান') : t('অনুভূতি জমা দিন')}
+                {saving ? t('জমা হচ্ছে…') : currentExperience ? t('অনুভূতি হালনাগাদ করুন') : t('অনুভূতি জমা দিন')}
               </button>
             </form>
           </section>

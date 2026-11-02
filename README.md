@@ -408,36 +408,32 @@ the current page does not import or depend on them.
   landing page does not display them.
 - MongoDB-backed donor registration; email or generated User ID login; current
   user retrieval; logout; and a protected personal profile.
+- Backend-enforced `super_admin`, `admin`, and `user` roles. One database
+  unique index protects the single Super Admin; only that account can create,
+  update, activate/deactivate, or delete Admin accounts. Configure
+  `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` to seed it once without
+  replacing an existing Super Admin.
+- The `/admin` dashboard shows account statistics, users, opted-in donors, and
+  public donor experiences. Admin account management is visible only to the
+  Super Admin and is separately enforced by backend authorization.
 - Donor experiences have a dedicated `/donor-experiences` page. Submissions
-  include 1–5 optimized photos and explicit public consent, start as pending,
-  and appear publicly only after approval. Images are size/type checked and
+  include 1–5 optimized photos and explicit public consent, and appear publicly
+  immediately after validation and save. Images are size/type checked and
   stored on disk by a replaceable storage adapter; MongoDB stores only image
   references. Configure `EXPERIENCE_IMAGE_DIR` when local uploads should live
   outside the default backend uploads folder.
-- Experience moderation is restricted to accounts explicitly listed by their
-  generated Ahoban User ID or MongoDB ID in the backend-only
-  `EXPERIENCE_MODERATOR_USER_IDS` environment variable (comma-separated).
-  Moderators can review pending public stories from the donor-experience page;
-  unconfigured accounts cannot approve or reject stories.
-  To identify the currently signed-in account's MongoDB ID without displaying
-  other profile fields, run this in the browser console while signed in:
-  `fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json()).then(({ user }) => console.log(user.id))`.
-  Add that ID to the root `.env`, for example
-  `EXPERIENCE_MODERATOR_USER_IDS=<trusted-user-id>`, then restart the backend.
-  Multiple trusted accounts can be comma-separated. Do not add an account
-  unless its owner is trusted to review donor stories.
-- Each donor keeps one account/profile. Approved experiences appear both in
-  the public experience feed and on the author's public profile. A profile
+- Each donor keeps one account/profile. Public experiences appear both in the
+  public feed and on the author's public profile. A profile
   photo is optional, uploaded through the authenticated profile endpoint, and
-  stored as an optimized WebP file outside MongoDB. Donors can also review all
-  of their own approved and pending posts on their private profile.
-- Approved public posts support one `like` or `love` reaction per user, with
+  stored as an optimized WebP file outside MongoDB. Donors can review and
+  manage their own public posts.
+- Public posts support one `like` or `love` reaction per user, with
   repeat clicks toggling it off and changing type updating the same record.
   Authenticated users can post comments, edit/delete their own comments, and
   view paginated public comments. Public APIs expose counts and only safe
   author fields; contact details and credentials are never serialized.
 - Public donor profiles continue to honor donor-search consent. A donor who
-  publishes an approved experience has a public profile with the information
+  publishes a public experience has a public profile with the information
   consented to in that post; a donor who only comments on a public post gets a
   limited name/photo profile while other profile details remain private.
 - Individual profile retrieval and editing for each authenticated user.
@@ -445,7 +441,8 @@ the current page does not import or depend on them.
   donor availability, and public-search consent. User ID and email are
   protected from profile updates.
 - Profile deletion requires explicit confirmation, deletes only the
-  authenticated user's account, and clears the session cookie.
+  authenticated user's account, and clears the session cookie. The protected
+  Super Admin account cannot be deleted through this route.
 - The Profile page places account deletion in a dedicated Danger Zone at the
   bottom of its content. The delete action explains that profile data, donation
   history, and badge progress will be permanently removed, then requires
@@ -460,17 +457,20 @@ the current page does not import or depend on them.
 - Password hashes use bcryptjs. Auth inputs and terms acceptance are validated
   on client and server. Email and generated User ID have database unique
   indexes.
-- JWTs are signed with HS256 and sent only in a 7-day HttpOnly, SameSite=Lax
-  cookie scoped to `/api` so authenticated profile routes receive it; the
-  Secure flag is enabled in production.
+- JWTs are signed with HS256 and sent only in a 7-day HttpOnly cookie scoped to
+  `/api`; production uses `SameSite=None; Secure` for Netlify-to-Render
+  requests, while local development uses `SameSite=Lax`.
   Responses do not include JWTs or password hashes.
 - Login and registration are rate-limited; CORS allows credentials only from
   the configured `CLIENT_URL`.
 - Express health endpoint, JSON error responses, configurable CORS, and
-  `/api` proxy from Vite to the backend.
-- Mongoose connection setup from `MONGODB_URI`. The server remains available if
-  MongoDB is not configured or unreachable; health then returns HTTP 503 and
-  clearly reports the database as disconnected.
+  `/api` proxy from Vite to the backend. Netlify generates its `/api` proxy
+  target from the `RENDER_API_URL` build environment variable and includes an
+  SPA fallback.
+- Mongoose connection setup from `MONGODB_URI`. In development, the server
+  remains available if MongoDB is not configured or reachable; health then
+  returns HTTP 503. Production startup requires a working database and, for an
+  empty database, valid Super Admin seed variables.
 - `.env.example` template and Git ignore rules for real environment files.
 
 ## API endpoints
@@ -482,19 +482,23 @@ the current page does not import or depend on them.
 | `POST` | `/api/auth/login` | Accepts email or User ID and password; sets the session cookie on success. |
 | `GET` | `/api/auth/me` | Returns the authenticated user's safe profile; requires a valid session cookie. |
 | `POST` | `/api/auth/logout` | Clears the session cookie. |
+| `GET` | `/api/admins/overview` | Returns administrative statistics; requires an active Admin or Super Admin session. |
+| `GET` | `/api/admins/users` | Lists safe user account fields; requires an active Admin or Super Admin session. |
+| `GET` | `/api/admins` | Lists Admin accounts; requires an active Admin or Super Admin session. |
+| `POST` | `/api/admins` | Creates an Admin account; Super Admin only. |
+| `PATCH` | `/api/admins/:id` | Updates or deactivates an Admin account; Super Admin only. |
+| `DELETE` | `/api/admins/:id` | Deletes an Admin account; Super Admin only. |
 | `GET` | `/api/users/profile` | Returns the signed-in user's profile; requires a valid session cookie. |
 | `PUT` | `/api/users/profile/photo` | Authenticated one-photo profile image upload; accepts JPG, PNG, or WebP up to 5 MB. |
 | `PATCH` | `/api/users/profile` | Updates allowed fields on the signed-in user's own profile; protected fields are rejected. |
-| `DELETE` | `/api/users/profile` | Permanently deletes the signed-in user's account and clears the session cookie. |
+| `DELETE` | `/api/users/profile` | Permanently deletes the signed-in user's account and clears the session cookie; the Super Admin account is protected. |
 | `GET` | `/api/users/:id/profile` | Returns a public, privacy-filtered donor profile by MongoDB ID or generated User ID. |
-| `GET` | `/api/experiences/moderation/queue` | Lists pending public stories; requires authentication and moderator allowlisting. |
-| `PATCH` | `/api/experiences/:id/moderation` | Approves or rejects a pending public story; requires authentication and moderator allowlisting. |
-| `GET` | `/api/users/:id/experiences` | Lists that donor's approved, consented public experiences with pagination. |
-| `GET` | `/api/experiences` | Lists only experiences with `isPublic: true` and `status: approved`, newest post first, with bounded pagination. |
-| `GET` | `/api/experiences/:id` | Returns one approved, public experience. |
-| `GET` | `/api/experiences/mine` | Lists the authenticated user's experience submissions and moderation states. |
-| `POST` | `/api/experiences` | Authenticated multipart submission with donor-profile snapshot, 1–5 `photos` files and explicit public consent; starts pending review. |
-| `PATCH` | `/api/experiences/:id` | Updates the authenticated user's own experience and returns it to pending review. |
+| `GET` | `/api/users/:id/experiences` | Lists that donor's public experiences with pagination. |
+| `GET` | `/api/experiences` | Lists public experiences newest first, with bounded pagination. |
+| `GET` | `/api/experiences/:id` | Returns one public experience. |
+| `GET` | `/api/experiences/mine` | Lists the authenticated user's own experiences. |
+| `POST` | `/api/experiences` | Validates and saves an authenticated user's public-consented story and makes it public immediately. |
+| `PATCH` | `/api/experiences/:id` | Updates the authenticated user's own public experience immediately. |
 | `DELETE` | `/api/experiences/:id` | Deletes only the authenticated user's own experience and stored photos. |
 | `GET` | `/api/experiences/:id/reactions` | Returns the public post's reaction count and the optional current user's reaction. |
 | `POST` | `/api/experiences/:id/reactions` | Authenticated `like`/`love` toggle; unique per user and post. |
@@ -504,7 +508,7 @@ the current page does not import or depend on them.
 | `PATCH` | `/api/comments/:id` | Edits only the authenticated user's own comment. |
 | `DELETE` | `/api/comments/:id` | Deletes only the authenticated user's own comment. |
 | `GET` | `/api/donors` | Lists only donors who opted in to public search; filters by blood group, division, district, location, availability, page, and limit. |
-| `GET` | `/api/donors/:id` | Returns an opted-in donor profile or a profile made public by an approved experience/comment. |
+| `GET` | `/api/donors/:id` | Returns an opted-in donor profile or a profile made public by an experience/comment. |
 | `*` | `/api/uploads/avatars/:filename` | Serves generated, optimized public-profile image files. |
 | `*` | Other paths | Returns a JSON 404 error. |
 
@@ -530,19 +534,20 @@ Example healthy response:
 
 `User` stores generated `userId`, full name, normalized unique email, phone,
 blood group, division, district, location, donor availability, public-search
-consent, `passwordHash`, and Mongoose timestamps. Unique indexes protect email
-and user ID; a compound index supports donor filtering. `passwordHash` is
+consent, role, active state, `passwordHash`, and Mongoose timestamps. Unique
+indexes protect email and user ID; a partial unique index allows only one
+`super_admin`; a compound index supports donor filtering. `passwordHash` is
 excluded from normal queries and is never included in API responses.
 
 `Experience` stores the authenticated user reference, a donor profile snapshot,
 message, donation date, optional donation count and location, public-visibility
-consent, one to five optimized image URLs, and moderation status. Only records
-with both `isPublic: true` and `status: approved` appear publicly. At database
-connection, documents from the earlier `publicConsent` field are migrated to
-the canonical `isPublic` field. Older records with a single
-`photoUrl` remain readable during the image-array migration. The donor location
-is optional so older accounts without that profile field can still submit an
-experience.
+consent, and one to five optimized image URLs. Public-consented stories are
+visible immediately after saving. At database connection, documents from the
+earlier `publicConsent` field are migrated to the canonical `isPublic` field;
+legacy rejected stories remain private and the obsolete moderation status is
+removed. Older records with a single `photoUrl` remain readable during the
+image-array migration. The donor location is optional so older accounts
+without that profile field can still submit an experience.
 
 `User.profilePhotoUrl` references an optional optimized WebP avatar in local
 image storage. `ExperienceReaction` stores a user, experience, and `like` or
@@ -590,6 +595,31 @@ Never commit `.env`; it is ignored by Git. `.env.example` contains placeholders,
 not working credentials. Configure a reachable MongoDB instance in
 `MONGODB_URI`; without MongoDB the API reports degraded health and auth
 endpoints respond with HTTP 503.
+
+## Fresh production deployment
+
+The Netlify build uses the root `netlify.toml` (`npm --prefix frontend ci &&
+npm --prefix frontend run build`, publishing `frontend/dist`). Set the
+non-secret `RENDER_API_URL` in Netlify to the new Render service origin, for
+example `https://your-render-service.onrender.com` with no trailing path. The
+frontend build generates a same-origin `/api/*` proxy and SPA fallback; a
+Netlify deploy fails if its deployment context does not have this value.
+
+Create the Render web service from this repository with root directory
+`backend`, build command `npm ci`, and start command `npm start`. Configure
+`MONGODB_URI` with the Atlas connection string, `JWT_SECRET` with a unique
+random value of at least 32 bytes, `CLIENT_URL` with the exact primary Netlify
+site/custom-domain origin, `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD`, and
+`NODE_ENV=production`. Render provides `PORT`; do not hardcode it. The two
+Super Admin variables are used once to seed an empty database and do not reset
+an existing Super Admin.
+
+MongoDB Atlas must allow connections from the Render service and the database
+user in `MONGODB_URI` should have access only to the application database. If
+uploaded experience photos and profile avatars must survive Render restarts or
+deploys, attach a persistent disk at the backend `uploads` directory and set
+`EXPERIENCE_IMAGE_DIR` to an `experiences` subdirectory on that disk. Without
+persistent storage, uploaded files on Render's local filesystem are ephemeral.
 
 ## Run commands
 
@@ -677,10 +707,8 @@ Reference design alignment:
 
 Profile and donor search verification:
 
-- Backend test suite passed 2/2 tests, covering registration, profile
-  persistence and editing, protected fields, unauthenticated access, donor
-  search consent/availability filters, location matching, pagination, and
-  public contact-data redaction.
+- Backend test suite passed 22/22 tests, including role authorization,
+  Super Admin protection, admin management, authentication, and donor flows.
 - Frontend production build and Oxlint passed.
 - The local API health endpoint returned HTTP 200 with MongoDB connected; Vite
   and the `/api` donor-search proxy returned HTTP 200.
@@ -698,15 +726,17 @@ Profile and donor search verification:
   followed its public profile link, and confirmed no horizontal overflow at
   desktop, tablet, and mobile viewport widths.
 
-The MongoDB-backed integration test verifies validation, rejected foreign
-origins, registration and duplicate email, unique generated User IDs, password
-hashing and response redaction, email/User ID login, protected auth/profile
-routes, profile edits and protected fields, availability and discoverability
-filters, location/group search, pagination, public-data redaction, invalid
-credentials, and cookie clearing on logout. It uses a dedicated test database
-and removes its test users. The current backend suite passed 2/2 tests;
-frontend production build and Oxlint passed. A frontend automated test runner
-is not configured.
+The MongoDB-backed integration tests verify registration, duplicate email,
+unique generated User IDs, password hashing and response redaction, email/User
+ID login, protected auth/profile routes, profile edits and protected fields,
+donor search, public-data redaction, and logout. Admin tests verify role-based
+access, the single-Super-Admin database constraint and seed behavior, protected
+Super Admin operations, admin creation/list/update/activation/deletion, and
+immediate denial of deactivated sessions. Experience tests verify that stories
+are public immediately and have no moderation endpoints. Test databases are
+isolated and cleaned up. The current backend suite passed 22/22 tests; frontend
+production build and Oxlint passed. A frontend automated test runner is not
+configured.
 
 ## Known issues and limitations
 

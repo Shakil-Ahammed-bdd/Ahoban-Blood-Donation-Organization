@@ -3,21 +3,12 @@ const { authenticate } = require('../middleware/authenticate')
 const optionalAuthenticate = require('../middleware/optional-authenticate')
 const experienceUpload = require('../middleware/experience-upload')
 const verifyOrigin = require('../middleware/verify-origin')
-const requireExperienceModerator = require('../middleware/require-experience-moderator')
 const controller = require('../controllers/experience.controller')
 const socialController = require('../controllers/experience-social.controller')
 
 const router = express.Router()
 
 router.get('/', optionalAuthenticate, controller.listPublic)
-router.get('/moderation/queue', authenticate, requireExperienceModerator, controller.listModerationQueue)
-router.patch(
-  '/:id/moderation',
-  authenticate,
-  requireExperienceModerator,
-  verifyOrigin,
-  controller.moderate,
-)
 router.get('/mine', authenticate, controller.listMine)
 router.post('/', authenticate, verifyOrigin, experienceUpload, controller.create)
 router.get('/:id/reactions', optionalAuthenticate, socialController.readReactions)

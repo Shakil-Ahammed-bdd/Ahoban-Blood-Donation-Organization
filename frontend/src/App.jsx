@@ -9,6 +9,7 @@ import DonorsPage from './pages/DonorsPage'
 import DonorProfilePage from './pages/DonorProfilePage'
 import Navbar from './components/Navbar'
 import ProfilePage from './pages/ProfilePage'
+import AdminDashboardPage from './pages/AdminDashboardPage'
 import DonorExperiences from './components/landing/DonorExperiences'
 import DonorLeaderboard from './components/landing/DonorLeaderboard'
 import { LanguageProvider } from './contexts/LanguageProvider'
@@ -89,6 +90,9 @@ function App() {
             <Route element={<DonorProfileRoute />} path="/donors/:id" />
             <Route element={<DonorExperiencesRoute />} path="/donor-experiences" />
             <Route element={<TopDonorsRoute />} path="/top-donors" />
+            <Route element={<ProtectedRoute roles={['admin', 'super_admin']} />}>
+              <Route element={<AppLayout><Navbar /><AdminDashboardPage /></AppLayout>} path="/admin" />
+            </Route>
             <Route element={<ProtectedRoute />}>
               <Route element={<UserProfileRoute />} path="/profile" />
               <Route element={<Navigate replace to="/profile" />} path="/dashboard" />

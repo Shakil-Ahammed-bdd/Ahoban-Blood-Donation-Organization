@@ -3,9 +3,9 @@ import { useAuth } from '../../contexts/useAuth'
 import { useLanguage } from '../../contexts/useLanguage'
 import { translateErrorMessage } from '../../contexts/translationUtils'
 
-function ProtectedRoute() {
+function ProtectedRoute({ roles = [] }) {
   const { t } = useLanguage()
-  const { error, notice, refresh, status } = useAuth()
+  const { error, notice, refresh, status, user } = useAuth()
   const location = useLocation()
 
   if (status === 'loading') {
@@ -23,6 +23,13 @@ function ProtectedRoute() {
     return notice
       ? <Navigate replace state={{ notice }} to="/" />
       : <Navigate replace state={{ from: location }} to="/login" />
+  }
+  if (roles.length && !roles.includes(user?.role)) {
+    return (
+      <main className="auth-loading" role="alert">
+        <p>{t('এই পৃষ্ঠাটি দেখতে আপনার অনুমতি নেই।')}</p>
+      </main>
+    )
   }
   return <Outlet />
 }

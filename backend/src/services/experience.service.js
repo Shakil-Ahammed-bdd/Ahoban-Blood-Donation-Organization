@@ -32,7 +32,6 @@ function serializeExperience(experience) {
     images,
     photoUrl: images[0] || '',
     isPublic: experience.isPublic ?? experience.publicConsent ?? false,
-    status: experience.status,
     createdAt: experience.createdAt,
     updatedAt: experience.updatedAt,
   }
@@ -43,7 +42,7 @@ async function listPublicExperiences({ page = 1, limit = 9, userId, currentUserI
   if (userId && !mongoose.isValidObjectId(userId)) {
     throw new HttpError(404, 'DONOR_NOT_FOUND', 'This donor profile is not public.')
   }
-  const criteria = { isPublic: true, status: 'approved', ...(userId ? { userId } : {}) }
+  const criteria = { isPublic: true, ...(userId ? { userId } : {}) }
   const skip = (page - 1) * limit
   const [experiences, total] = await Promise.all([
     Experience.find(criteria)
@@ -70,35 +69,6 @@ async function listMyExperiences(userId) {
   return getExperienceSummaries(experiences.map(serializeExperience), userId)
 }
 
-async function listExperiencesForModeration() {
-  ensureDatabase()
-  const experiences = await Experience.find({ isPublic: true, status: 'pending' })
-    .populate('userId', 'profilePhotoUrl')
-    .sort({ createdAt: 1, _id: 1 })
-    .lean()
-  return getExperienceSummaries(experiences.map(serializeExperience))
-}
-
-async function moderateExperience(id, status) {
-  ensureDatabase()
-  if (!mongoose.isValidObjectId(id)) {
-    throw new HttpError(404, 'EXPERIENCE_NOT_FOUND', 'The experience was not found.')
-  }
-  if (!['approved', 'rejected'].includes(status)) {
-    throw new HttpError(400, 'INVALID_MODERATION_STATUS', 'Choose approved or rejected.')
-  }
-
-  const experience = await Experience.findOneAndUpdate(
-    { _id: id, status: 'pending', isPublic: true },
-    { $set: { status, ...(status === 'approved' ? { isPublic: true } : {}) } },
-    { returnDocument: 'after', runValidators: true },
-  ).populate('userId', 'profilePhotoUrl')
-  if (!experience) {
-    throw new HttpError(404, 'EXPERIENCE_NOT_FOUND', 'The pending public experience was not found.')
-  }
-  return serializeExperience(experience)
-}
-
 async function getPublicExperience(id, currentUserId) {
   ensureDatabase()
   if (!mongoose.isValidObjectId(id)) {
@@ -107,7 +77,6 @@ async function getPublicExperience(id, currentUserId) {
   const experience = await Experience.findOne({
     _id: id,
     isPublic: true,
-    status: 'approved',
   }).populate('userId', 'profilePhotoUrl').lean()
   if (!experience) {
     throw new HttpError(404, 'EXPERIENCE_NOT_FOUND', 'The experience was not found.')
@@ -130,8 +99,8 @@ async function createExperience(user, body, file) {
       userId: user._id,
       images,
       photoUrl: images[0],
-      isPublic: values.publicConsent,
-      status: 'pending',
+      isPublic: true,
+      publicConsent: true,
     })
     await experience.populate('userId', 'profilePhotoUrl')
     return serializeExperience(experience)
@@ -183,8 +152,8 @@ async function updateExperience(id, user, body, files = []) {
   Object.assign(experience, values, {
     images: newImages,
     photoUrl: newImages[0] || '',
-    isPublic: values.publicConsent,
-    status: 'pending',
+    isPublic: true,
+    publicConsent: true,
   })
   try {
     await experience.save()
@@ -214,9 +183,7 @@ module.exports = {
   createExperience,
   deleteExperience,
   getPublicExperience,
-  listExperiencesForModeration,
   listMyExperiences,
   listPublicExperiences,
-  moderateExperience,
   updateExperience,
 }

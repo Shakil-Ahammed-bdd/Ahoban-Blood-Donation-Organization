@@ -133,6 +133,23 @@ const userSchema = new mongoose.Schema(
       default: '',
       maxlength: 500,
     },
+    role: {
+      type: String,
+      enum: ['user', 'admin', 'super_admin'],
+      default: 'user',
+      index: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    permissions: {
+      manageAdmins: {
+        type: Boolean,
+        default: false,
+      },
+    },
     passwordHash: {
       type: String,
       required: true,
@@ -142,6 +159,21 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
+userSchema.pre('save', function normalizeRole() {
+  if (!['user', 'admin', 'super_admin'].includes(this.role)) {
+    this.role = 'user'
+  }
+})
+
+
 userSchema.index({ isSearchable: 1, bloodGroup: 1, division: 1, district: 1 })
+userSchema.index(
+  { role: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { role: 'super_admin' },
+    name: 'one_super_admin',
+  },
+)
 
 module.exports = mongoose.models.User || mongoose.model('User', userSchema)

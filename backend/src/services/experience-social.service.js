@@ -18,7 +18,6 @@ async function findPublicExperience(id) {
   const experience = await Experience.exists({
     _id: id,
     isPublic: true,
-    status: 'approved',
   })
   if (!experience) {
     throw new HttpError(404, 'EXPERIENCE_NOT_FOUND', 'The experience was not found.')
