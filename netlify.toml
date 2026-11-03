@@ -1,4 +1,6 @@
-
 [build]
   command = "npm --prefix frontend ci && npm --prefix frontend run build"
   publish = "frontend/dist"
+
+[build.environment]
+  RENDER_API_URL = "https://ahoban-blood-donation-organization.onrender.com"
