@@ -4,6 +4,7 @@ const ExperienceComment = require('../models/ExperienceComment')
 const ExperienceReaction = require('../models/ExperienceReaction')
 const { removeImages } = require('./experience-image-storage')
 const HttpError = require('../errors/http-error')
+const { approvedExperienceCriteria } = require('../utils/experience-status')
 
 function ensureDatabase() {
   if (mongoose.connection.readyState !== 1) {
@@ -17,7 +18,7 @@ async function findPublicExperience(id) {
   }
   const experience = await Experience.exists({
     _id: id,
-    isPublic: true,
+    ...approvedExperienceCriteria(),
   })
   if (!experience) {
     throw new HttpError(404, 'EXPERIENCE_NOT_FOUND', 'The experience was not found.')

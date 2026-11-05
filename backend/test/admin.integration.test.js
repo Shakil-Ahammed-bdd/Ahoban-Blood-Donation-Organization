@@ -9,6 +9,7 @@ process.env.JWT_SECRET ||= randomBytes(48).toString('base64url')
 
 const app = require('../src/app')
 const User = require('../src/models/User')
+const Experience = require('../src/models/Experience')
 const { seedSuperAdmin } = require('../src/services/auth.service')
 
 function isolatedDatabaseUri() {
@@ -152,7 +153,123 @@ test('role authorization, Super Admin protection, and admin management', async (
     assert.equal((await request('/admins/overview', { cookie: adminCookie })).status, 200)
     const userListing = await request('/admins/users', { cookie: adminCookie })
     assert.equal(userListing.status, 200)
-    assert.ok((await userListing.json()).users.some(({ id }) => id === registeredBody.user.id))
+    const listedUser = (await userListing.json()).users.find(({ id }) => id === registeredBody.user.id)
+    assert.ok(listedUser)
+    assert.equal(listedUser.phone, registeredBody.user.phone)
+    assert.equal(listedUser.bloodGroup, registeredBody.user.bloodGroup)
+    assert.equal(listedUser.location, registeredBody.user.location)
+    assert.equal(listedUser.profilePhotoUrl, registeredBody.user.profilePhotoUrl)
+
+    const pendingExperiences = await Promise.all(
+      Array.from({ length: 4 }, (_, index) => {
+        const image = `/api/uploads/experiences/approval-${randomUUID()}.webp`
+        return Experience.create({
+          userId: registeredBody.user.id,
+          donorName: registeredBody.user.fullName,
+          publicUserId: registeredBody.user.userId,
+          bloodGroup: 'A+',
+          division: 'ঢাকা',
+          district: 'ঢাকা',
+          location: 'ঢাকা',
+          donationDate: new Date('2026-09-20T00:00:00.000Z'),
+          donationCount: index + 1,
+          message: `Pending experience number ${index + 1} for approval workflow testing.`,
+          images: [image],
+          photoUrl: image,
+          publicConsent: true,
+          isPublic: true,
+          status: 'pending',
+        })
+      }),
+    )
+    const pendingIds = pendingExperiences.map((experience) => String(experience._id))
+    const legacyApprovedId = new mongoose.Types.ObjectId()
+    const legacyImage = `/api/uploads/experiences/legacy-${randomUUID()}.webp`
+    await Experience.collection.insertOne({
+      _id: legacyApprovedId,
+      userId: new mongoose.Types.ObjectId(registeredBody.user.id),
+      donorName: registeredBody.user.fullName,
+      publicUserId: registeredBody.user.userId,
+      bloodGroup: 'A+',
+      division: 'ঢাকা',
+      district: 'ঢাকা',
+      location: 'ঢাকা',
+      donationDate: new Date('2026-09-20T00:00:00.000Z'),
+      message: 'A legacy approved experience without an explicit status field.',
+      images: [legacyImage],
+      photoUrl: legacyImage,
+      publicConsent: true,
+      isPublic: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    const unauthenticatedQueue = await request('/admins/experiences/pending')
+    assert.equal(unauthenticatedQueue.status, 401)
+    const forbiddenQueue = await request('/admins/experiences/pending', { cookie: userCookie })
+    assert.equal(forbiddenQueue.status, 403)
+    const paginatedQueue = await request('/admins/experiences/pending?page=1&limit=2', {
+      cookie: adminCookie,
+    })
+    assert.equal(paginatedQueue.status, 200)
+    const pendingList = await paginatedQueue.json()
+    assert.equal(pendingList.pagination.pages, 2)
+    assert.equal(pendingList.experiences.length, 2)
+    assert.equal(pendingList.experiences[0].status, 'pending')
+    assert.equal(pendingList.experiences[0].donationCount, 1)
+    assert.equal(pendingList.experiences[0].images.length, 1)
+    assert.equal(pendingList.experiences[0].email, registeredBody.user.email)
+    assert.equal((await request(`/admins/experiences/${pendingIds[0]}/approve`, {
+      method: 'PATCH',
+      cookie: userCookie,
+    })).status, 403)
+
+    const adminApproval = await request(`/admins/experiences/${pendingIds[0]}/approve`, {
+      method: 'PATCH',
+      cookie: adminCookie,
+    })
+    assert.equal(adminApproval.status, 200)
+    assert.equal((await adminApproval.json()).experience.status, 'approved')
+    const adminRejection = await request(`/admins/experiences/${pendingIds[1]}/reject`, {
+      method: 'PATCH',
+      cookie: adminCookie,
+    })
+    assert.equal(adminRejection.status, 200)
+    assert.equal((await adminRejection.json()).experience.status, 'rejected')
+
+    const superAdminApproval = await request(`/admins/experiences/${pendingIds[2]}/approve`, {
+      method: 'PATCH',
+      cookie: superAdminCookie,
+    })
+    assert.equal(superAdminApproval.status, 200)
+    const superAdminRejection = await request(`/admins/experiences/${pendingIds[3]}/reject`, {
+      method: 'PATCH',
+      cookie: superAdminCookie,
+    })
+    assert.equal(superAdminRejection.status, 200)
+
+    const publicFeed = await request('/experiences?page=1&limit=24')
+    const publicData = await publicFeed.json()
+    const publicIds = publicData.experiences.map(({ id }) => id)
+    assert.equal(publicIds.includes(pendingIds[0]), true)
+    assert.equal(publicIds.includes(pendingIds[1]), false)
+    assert.equal(publicIds.includes(pendingIds[2]), true)
+    assert.equal(publicIds.includes(pendingIds[3]), false)
+    assert.equal(publicIds.includes(String(legacyApprovedId)), true)
+    assert.equal('email' in publicData.experiences.find(({ id }) => id === pendingIds[0]), false)
+    const legacyApproved = publicData.experiences.find(
+      ({ id }) => id === String(legacyApprovedId),
+    )
+    assert.equal(legacyApproved.status, 'approved')
+    assert.equal((await request(`/experiences/${pendingIds[0]}`)).status, 200)
+    assert.equal((await request(`/experiences/${pendingIds[1]}`)).status, 404)
+    assert.equal((await request(`/experiences/${pendingIds[3]}/reactions`)).status, 404)
+    assert.equal((await request(`/experiences/${pendingIds[3]}/comments`)).status, 404)
+    assert.equal((await Experience.findById(pendingIds[1]).lean()).status, 'rejected')
+    assert.equal((await Experience.findById(pendingIds[1]).lean()).isPublic, false)
+    assert.equal((await request(`/admins/experiences/${pendingIds[0]}/reject`, {
+      method: 'PATCH',
+      cookie: superAdminCookie,
+    })).status, 404)
 
     assert.equal((await request('/admins', {
       method: 'POST',

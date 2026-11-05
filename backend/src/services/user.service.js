@@ -8,6 +8,7 @@ const { removeAvatar, storeAvatar } = require('./experience-image-storage')
 const { deleteUserInteractions } = require('./experience-social.service')
 const { isAvailableToDonate } = require('../utils/donation-eligibility')
 const { badgeSummary, getDonorBadge } = require('./donor-badge.service')
+const { approvedExperienceCriteria } = require('../utils/experience-status')
 
 function ensureDatabase() {
   if (mongoose.connection.readyState !== 1) {
@@ -39,12 +40,12 @@ async function getPublicProfile(identifier) {
 
   if (!user.isSearchable) {
     const [hasPublicPost, commentPostIds] = await Promise.all([
-      Experience.exists({ userId: user._id, isPublic: true }),
+      Experience.exists(approvedExperienceCriteria({ userId: user._id })),
       ExperienceComment.distinct('experienceId', { userId: user._id }),
     ])
     const hasPublicComment = commentPostIds.length > 0 && await Experience.exists({
       _id: { $in: commentPostIds },
-      isPublic: true,
+      ...approvedExperienceCriteria(),
     })
     if (!hasPublicPost && !hasPublicComment) {
       throw new HttpError(404, 'PROFILE_NOT_FOUND', 'The public donor profile was not found.')

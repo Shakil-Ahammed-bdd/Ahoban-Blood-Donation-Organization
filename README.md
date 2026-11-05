@@ -36,12 +36,12 @@ HttpOnly cookies.
   explicit 401 still transitions to unauthenticated; existing logout behavior
   continues to clear the server cookie.
 
-## Section Navigation Fix
+## Navigation
 
-- Navbar links for **আমাদের সম্পর্কে** and **রক্ত খুঁজুন** now smoothly scroll
-  to the existing Home sections (`#about` and `#find-blood`). They work from
-  Home and other routes, including the public donor-experiences page, without
-  adding duplicate sections or reloading the application.
+- The Navbar's **ব্লগ** link opens the dedicated `/blog` route; blog articles
+  use `/blog/:slug` and are not rendered as a Home page section. Blood search
+  smoothly scrolls to the Home section from Home and other routes, including
+  the public donor-experiences page.
 - Home section navigation accounts for the sticky Navbar offset, and the
   existing section scroll margin keeps headings visible after navigation.
 
@@ -485,6 +485,14 @@ the current page does not import or depend on them.
 | `GET` | `/api/admins/overview` | Returns administrative statistics; requires an active Admin or Super Admin session. |
 | `GET` | `/api/admins/users` | Lists safe user account fields; requires an active Admin or Super Admin session. |
 | `GET` | `/api/admins` | Lists Admin accounts; requires an active Admin or Super Admin session. |
+| `GET` | `/api/admins/blogs` | Searches and paginates all Blog posts, including drafts; requires an active Admin or Super Admin session. |
+| `GET` | `/api/admins/blogs/categories` | Lists managed Blog categories; requires an active Admin or Super Admin session. |
+| `POST` | `/api/admins/blogs/categories` | Adds a Blog category; Admin or Super Admin only. |
+| `PATCH` | `/api/admins/blogs/categories/:id` | Updates a category name, optional description, or active status; renaming preserves its Blog assignments. Admin or Super Admin only. |
+| `DELETE` | `/api/admins/blogs/categories/:id` | Safely deactivates a category without deleting it or its assigned Blog posts. Admin or Super Admin only. |
+| `POST` | `/api/admins/blogs` | Creates a draft or published Blog post with an optional validated cover upload; Admin or Super Admin only. |
+| `PATCH` | `/api/admins/blogs/:id` | Edits a Blog post, including publishing or saving it as a draft; Admin or Super Admin only. |
+| `DELETE` | `/api/admins/blogs/:id` | Deletes a Blog post; Admin or Super Admin only. |
 | `POST` | `/api/admins` | Creates an Admin account; Super Admin only. |
 | `PATCH` | `/api/admins/:id` | Updates or deactivates an Admin account; Super Admin only. |
 | `DELETE` | `/api/admins/:id` | Deletes an Admin account; Super Admin only. |
@@ -494,11 +502,14 @@ the current page does not import or depend on them.
 | `DELETE` | `/api/users/profile` | Permanently deletes the signed-in user's account and clears the session cookie; the Super Admin account is protected. |
 | `GET` | `/api/users/:id/profile` | Returns a public, privacy-filtered donor profile by MongoDB ID or generated User ID. |
 | `GET` | `/api/users/:id/experiences` | Lists that donor's public experiences with pagination. |
+| `GET` | `/api/blogs` | Searches and paginates published Blog posts and returns public categories and the featured post. |
+| `GET` | `/api/blogs/categories` | Lists available categories and categories used by published Blog posts. |
+| `GET` | `/api/blogs/:slug` | Returns one published Blog post by its unique URL slug. |
 | `GET` | `/api/experiences` | Lists public experiences newest first, with bounded pagination. |
 | `GET` | `/api/experiences/:id` | Returns one public experience. |
 | `GET` | `/api/experiences/mine` | Lists the authenticated user's own experiences. |
-| `POST` | `/api/experiences` | Validates and saves an authenticated user's public-consented story and makes it public immediately. |
-| `PATCH` | `/api/experiences/:id` | Updates the authenticated user's own public experience immediately. |
+| `POST` | `/api/experiences` | Validates and saves an authenticated user's public-consented story as pending Admin approval. |
+| `PATCH` | `/api/experiences/:id` | Updates the authenticated user's own experience and submits it for Admin approval. |
 | `DELETE` | `/api/experiences/:id` | Deletes only the authenticated user's own experience and stored photos. |
 | `GET` | `/api/experiences/:id/reactions` | Returns the public post's reaction count and the optional current user's reaction. |
 | `POST` | `/api/experiences/:id/reactions` | Authenticated `like`/`love` toggle; unique per user and post. |
@@ -509,6 +520,7 @@ the current page does not import or depend on them.
 | `DELETE` | `/api/comments/:id` | Deletes only the authenticated user's own comment. |
 | `GET` | `/api/donors` | Lists only donors who opted in to public search; filters by blood group, division, district, location, availability, page, and limit. |
 | `GET` | `/api/donors/:id` | Returns an opted-in donor profile or a profile made public by an experience/comment. |
+| `*` | `/api/uploads/blogs/:filename` | Serves generated Blog cover images. |
 | `*` | `/api/uploads/avatars/:filename` | Serves generated, optimized public-profile image files. |
 | `*` | Other paths | Returns a JSON 404 error. |
 
@@ -794,7 +806,7 @@ configured.
 
 - Connect blood request UI to a validated backend workflow.
 - Implement an optional privacy-preserving donor contact workflow.
-- Build out any additional About Us and Contact page content.
+- Expand the Blog library with additional editorial content.
 - Add frontend automated tests.
 - Configure deployment environments and production database credentials when
   deployment is in scope.

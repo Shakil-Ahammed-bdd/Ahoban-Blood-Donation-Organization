@@ -23,12 +23,6 @@ async function connectDatabase(uri) {
       { isPublic: { $exists: false } },
       [{ $set: { isPublic: { $eq: ['$publicConsent', true] } } }],
     )
-    await Experience.collection.updateMany(
-      { status: 'rejected' },
-      { $set: { isPublic: false } },
-    )
-    await Experience.collection.updateMany({}, { $unset: { status: '' } })
-
     if (process.env.SUPER_ADMIN_EMAIL && process.env.SUPER_ADMIN_PASSWORD) {
       try {
         const result = await seedSuperAdmin({

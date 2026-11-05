@@ -3,11 +3,11 @@ import { apiRequest } from './apiRequest'
 export const profileApi = {
   get: () => apiRequest('/users/profile'),
   update: (changes) =>
-    apiRequest('/users/profile', { method: 'PATCH', body: JSON.stringify(changes) }),
+    apiRequest('/users/profile', { method: 'PATCH', body: changes }),
   logDonationDate: (donationDate) =>
     apiRequest('/users/profile/donation-history', {
       method: 'POST',
-      body: JSON.stringify({ donationDate }),
+      body: { donationDate },
     }),
   updatePhoto: (formData) =>
     apiRequest('/users/profile/photo', { method: 'PUT', body: formData }),

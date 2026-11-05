@@ -7,8 +7,9 @@ import { scrollToSection } from '../utils/scrollToSection'
 
 const links = [
   { label: 'হোম', href: '#home' },
-  { label: 'আমাদের সম্পর্কে', href: '#about' },
+  { label: 'ব্লগ', href: '/blog' },
   { label: 'রক্ত খুঁজুন', href: '#find-blood' },
+  { label: 'রক্তের আবেদন', href: '/blood-requests' },
   { label: 'রক্তদাতার অনুভূতি', href: '/donor-experiences' },
   { label: 'navbar.topDonors', href: '/top-donors' },
 ]

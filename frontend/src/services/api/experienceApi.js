@@ -3,11 +3,12 @@ import { apiRequest } from './apiRequest'
 export const experienceApi = {
   list: ({ page = 1, limit = 9 } = {}) =>
     apiRequest(`/experiences?page=${page}&limit=${limit}`),
+  read: (id) => apiRequest(`/experiences/${encodeURIComponent(id)}`),
   mine: () => apiRequest('/experiences/mine'),
   react: (id, type = 'love') =>
     apiRequest(`/experiences/${encodeURIComponent(id)}/reactions`, {
       method: 'POST',
-      body: JSON.stringify({ type }),
+      body: { type },
     }),
   unreact: (id) =>
     apiRequest(`/experiences/${encodeURIComponent(id)}/reactions`, { method: 'DELETE' }),
@@ -16,12 +17,12 @@ export const experienceApi = {
   createComment: (id, content) =>
     apiRequest(`/experiences/${encodeURIComponent(id)}/comments`, {
       method: 'POST',
-      body: JSON.stringify({ content }),
+      body: { content },
     }),
   updateComment: (id, content) =>
     apiRequest(`/comments/${encodeURIComponent(id)}`, {
       method: 'PATCH',
-      body: JSON.stringify({ content }),
+      body: { content },
     }),
   deleteComment: (id) =>
     apiRequest(`/comments/${encodeURIComponent(id)}`, { method: 'DELETE' }),

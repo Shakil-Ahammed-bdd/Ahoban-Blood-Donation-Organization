@@ -63,10 +63,33 @@
 
 .admin-stat-card {
   display: grid;
+  width: 100%;
+  min-width: 0;
   min-height: 100px;
   align-content: space-between;
   gap: 12px;
   padding: 18px 20px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.admin-stat-card:hover,
+.admin-stat-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: #484d5b;
+  box-shadow: 0 20px 46px rgb(0 0 0 / 24%);
+}
+
+.admin-stat-card:focus-visible {
+  outline: 2px solid #ec2633;
+  outline-offset: 3px;
+}
+
+.admin-stat-card.is-selected {
+  border-color: #ec2633;
+  box-shadow: 0 0 0 2px rgb(236 38 51 / 15%), 0 18px 48px rgb(0 0 0 / 22%);
 }
 
 .admin-stat-card span,
@@ -101,6 +124,477 @@
 
 .admin-panel-heading a:hover {
   color: #fff;
+}
+
+.admin-stat-details-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-stat-details-close {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border: 1px solid #454853;
+  border-radius: 9px;
+  background: #191c26;
+  color: #e8e8ed;
+  cursor: pointer;
+  font: inherit;
+  font-size: 23px;
+  line-height: 1;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.admin-blood-request-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.admin-blood-request-tabs button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid #303440;
+  border-radius: 9px;
+  background: #11141c;
+  color: #b7b8c0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.admin-blood-request-tabs button.is-selected {
+  border-color: #ec2633;
+  background: rgb(236 38 51 / 10%);
+  color: #fff;
+}
+
+.admin-blood-request-tabs strong {
+  color: #fff;
+  font-size: 12px;
+}
+
+.admin-blood-request-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-blood-request-row {
+  display: flex;
+  min-width: 0;
+  min-height: 60px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #263449;
+  border-radius: 11px;
+  background: linear-gradient(110deg, #0d1726, #0b111c);
+}
+
+.admin-blood-request-patient,
+.admin-blood-request-condition,
+.admin-blood-request-hospital,
+.admin-blood-request-contact,
+.admin-blood-request-units,
+.admin-blood-request-date {
+  min-width: 0;
+  overflow: hidden;
+  color: #d7dce5;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-blood-request-patient {
+  flex: 0 1 110px;
+  color: #f0f1f3;
+}
+
+.admin-blood-request-group {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border: 1px solid rgb(236 38 51 / 38%);
+  border-radius: 9px;
+  background: rgb(236 38 51 / 12%);
+  color: #ff7b83;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-blood-request-condition {
+  flex: 1 1 125px;
+}
+
+.admin-blood-request-hospital {
+  flex: 1 1 160px;
+}
+
+.admin-blood-request-contact {
+  flex: 1 1 145px;
+}
+
+.admin-blood-request-units,
+.admin-blood-request-date {
+  flex: 0 1 auto;
+  color: #9fb0c5;
+}
+
+.admin-blood-request-row-actions,
+.admin-blood-request-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.admin-blood-request-row-actions > button,
+.admin-blood-request-actions > button {
+  min-height: 32px;
+  padding: 5px 8px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.admin-blood-request-detail {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #263449;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #0d1726, #0a111c);
+}
+
+.admin-blood-request-detail > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #263449;
+}
+
+.admin-blood-request-detail > header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-blood-request-detail > header strong {
+  color: #edf3fa;
+  font-size: 15px;
+}
+
+.admin-blood-request-detail > header span {
+  color: #9db1c7;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.admin-blood-request-detail > p {
+  margin: 0;
+  color: #d3deea;
+  font-size: 13px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-blood-request-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.admin-blood-request-detail-grid > div {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid #243246;
+  border-radius: 8px;
+  background: rgb(7 13 22 / 65%);
+}
+
+.admin-blood-request-detail-grid dt {
+  margin-bottom: 4px;
+  color: #8299b2;
+  font-size: 10px;
+}
+
+.admin-blood-request-detail-grid dd {
+  margin: 0;
+  color: #e3ebf5;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.admin-blood-request-detail-grid a {
+  color: inherit;
+}
+
+.admin-stat-details-close:hover,
+.admin-stat-details-close:focus-visible {
+  border-color: #ec2633;
+  background: #242733;
+}
+
+.admin-stat-details-close:focus-visible {
+  outline: 2px solid #ec2633;
+  outline-offset: 2px;
+}
+
+.admin-stat-details-error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-stat-record-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-stat-record {
+  display: flex;
+  min-width: 0;
+  min-height: 60px;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 12px;
+  border: 1px solid #263449;
+  border-radius: 11px;
+  background: linear-gradient(110deg, #0d1726, #0b111c);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.admin-stat-record:hover {
+  border-color: #3e668f;
+  background: #101c2c;
+}
+
+.admin-user-avatar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border: 1px solid #344d6a;
+  border-radius: 50%;
+  background: #142338;
+  color: #87b9f1;
+  font-size: 15px;
+  font-weight: 750;
+  object-fit: cover;
+}
+
+.admin-user-avatar.is-large {
+  width: 62px;
+  height: 62px;
+  flex-basis: 62px;
+  font-size: 22px;
+}
+
+.admin-user-avatar.is-fallback {
+  text-transform: uppercase;
+}
+
+.admin-stat-record-name,
+.admin-stat-record-id,
+.admin-stat-record-email {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-stat-record-name {
+  flex: 1.1 1 160px;
+  color: #edf3fa;
+  font-size: 13px;
+}
+
+.admin-stat-record-id {
+  flex: .8 1 105px;
+  color: #93a8bf;
+  font-size: 12px;
+}
+
+.admin-stat-record-email {
+  flex: 1.5 1 180px;
+  color: #9db1c7;
+  font-size: 12px;
+}
+
+.admin-stat-record-view {
+  min-width: 68px;
+  min-height: 33px;
+  margin-left: auto;
+  padding: 6px 12px;
+  border: 1px solid #315984;
+  border-radius: 8px;
+  background: #132945;
+  color: #b6d5f8;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.admin-stat-record-view:hover,
+.admin-stat-record-view:focus-visible {
+  border-color: #6ca9e9;
+  background: #1b385b;
+}
+
+.admin-stat-record-view:focus-visible {
+  outline: 2px solid #6ca9e9;
+  outline-offset: 2px;
+}
+
+.admin-user-detail-card {
+  display: grid;
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid #263449;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #0d1726, #0a111c);
+}
+
+.admin-user-detail-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #263449;
+}
+
+.admin-user-detail-identity {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 5px;
+}
+
+.admin-user-detail-identity h3 {
+  margin: 0;
+  color: #edf3fa;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-detail-identity > span {
+  color: #93a8bf;
+  font-size: 12px;
+}
+
+.admin-user-detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 3px;
+}
+
+.admin-user-detail-badges > span {
+  padding: 4px 9px;
+  border: 1px solid #315984;
+  border-radius: 999px;
+  background: #132945;
+  color: #b6d5f8;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-user-detail-badges > .is-active {
+  border-color: #27654e;
+  background: #10251e;
+  color: #8bd6a3;
+}
+
+.admin-user-detail-badges > .is-inactive {
+  border-color: #69323b;
+  background: #29151a;
+  color: #ff959c;
+}
+
+.admin-user-detail-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-user-detail-profile {
+  display: flex;
+  min-width: 140px;
+  flex: 1 1 145px;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  border: 1px solid #243246;
+  border-radius: 9px;
+  background: rgb(7 13 22 / 65%);
+  color: #8299b2;
+  font-size: 10px;
+}
+
+.admin-user-detail-item {
+  display: grid;
+  min-width: 140px;
+  flex: 1 1 145px;
+  gap: 5px;
+  padding: 11px 12px;
+  border: 1px solid #243246;
+  border-radius: 9px;
+  background: rgb(7 13 22 / 65%);
+}
+
+.admin-user-detail-item > span {
+  color: #8299b2;
+  font-size: 10px;
+}
+
+.admin-user-detail-item > strong {
+  color: #e3ebf5;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-detail-story {
+  margin: 0;
+  padding: 13px;
+  border: 1px solid #243246;
+  border-radius: 9px;
+  color: #c4d2e1;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-back-button {
+  justify-self: start;
 }
 
 .admin-table-scroll {
@@ -231,6 +725,324 @@
   line-height: 1.65;
 }
 
+.admin-approval-record-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-approval-record {
+  display: flex;
+  min-width: 0;
+  min-height: 60px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid #263449;
+  border-radius: 11px;
+  background: linear-gradient(110deg, #0d1726, #0b111c);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.admin-approval-record:hover {
+  border-color: #3e668f;
+  background: #101c2c;
+}
+
+.admin-approval-record-name,
+.admin-approval-record-id,
+.admin-approval-record-email {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-approval-record-name {
+  flex: 0 1 155px;
+  color: #edf3fa;
+  font-size: 12px;
+}
+
+.admin-approval-record-id {
+  flex: 0 1 145px;
+  color: #9db1c7;
+  font-size: 11px;
+}
+
+.admin-approval-record-email {
+  flex: 1 1 200px;
+  color: #9db1c7;
+  font-size: 11px;
+}
+
+.admin-approval-record-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.admin-approval-record-actions > button {
+  min-height: 33px;
+  padding: 6px 9px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.admin-approval-view {
+  border: 1px solid #315984;
+  border-radius: 8px;
+  background: #132945;
+  color: #b6d5f8;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-approval-view:hover,
+.admin-approval-view:focus-visible {
+  border-color: #6ca9e9;
+  background: #1b385b;
+}
+
+.admin-approval-detail {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #263449;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #0d1726, #0a111c);
+}
+
+.admin-approval-detail-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #263449;
+}
+
+.admin-approval-detail-header > div {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+}
+
+.admin-approval-detail-header strong {
+  color: #edf3fa;
+  font-size: 14px;
+}
+
+.admin-approval-detail-header small {
+  color: #93a8bf;
+  font-size: 11px;
+}
+
+.admin-approval-full-message {
+  margin: 0;
+  color: #d3deea;
+  font-size: 13px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-approval-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.admin-approval-photos img {
+  width: min(100%, 190px);
+  height: 140px;
+  border: 1px solid #263449;
+  border-radius: 9px;
+  background: #101c2c;
+  object-fit: cover;
+}
+
+.admin-approval-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+
+.admin-approval-detail-meta > div {
+  display: grid;
+  min-width: 145px;
+  flex: 1 1 145px;
+  gap: 4px;
+  padding: 9px 10px;
+  border: 1px solid #243246;
+  border-radius: 8px;
+  background: rgb(7 13 22 / 65%);
+}
+
+.admin-approval-detail-meta dt {
+  color: #8299b2;
+  font-size: 10px;
+}
+
+.admin-approval-detail-meta dd {
+  margin: 0;
+  color: #e3ebf5;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.admin-approval-record-list + .admin-pagination {
+  margin-bottom: 2px;
+}
+
+.admin-approval-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-approval-card {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #292c36;
+  border-radius: 12px;
+  background: #0b0d13;
+}
+
+.admin-approval-author {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.admin-approval-avatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.admin-approval-avatar-fallback {
+  display: grid;
+  place-items: center;
+  background: #292c36;
+  color: #ff959c;
+  font-weight: 750;
+}
+
+.admin-approval-author > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.admin-approval-author strong {
+  color: #eeeef1;
+  font-size: 14px;
+}
+
+.admin-approval-author small,
+.admin-approval-meta dt {
+  color: #9698a2;
+  font-size: 12px;
+}
+
+.admin-approval-message {
+  margin: 0;
+  color: #d3d4db;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.admin-approval-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 7px;
+}
+
+.admin-approval-photos img {
+  width: 100%;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.admin-approval-detail .admin-approval-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.admin-approval-detail .admin-approval-photos img {
+  width: min(100%, 190px);
+  height: 140px;
+  border: 1px solid #263449;
+  border-radius: 9px;
+  background: #101c2c;
+  object-fit: contain;
+}
+
+.admin-approval-meta {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+}
+
+.admin-approval-meta > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-approval-meta dt,
+.admin-approval-meta dd {
+  margin: 0;
+}
+
+.admin-approval-meta dd {
+  color: #e0e0e5;
+  font-size: 12px;
+  text-align: right;
+}
+
+.admin-approval-details {
+  color: #b7b8c0;
+  font-size: 12px;
+}
+
+.admin-approval-details summary {
+  width: fit-content;
+  color: #ff848b;
+  cursor: pointer;
+}
+
+.admin-approval-details p {
+  margin: 8px 0 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.admin-approval-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .admin-create-form,
 .admin-account-edit {
   display: grid;
@@ -349,6 +1161,73 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .admin-approval-record {
+    flex-wrap: wrap;
+    column-gap: 10px;
+    row-gap: 7px;
+  }
+
+  .admin-blood-request-row {
+    flex-wrap: wrap;
+    column-gap: 10px;
+    row-gap: 7px;
+  }
+
+  .admin-blood-request-patient,
+  .admin-blood-request-condition,
+  .admin-blood-request-hospital,
+  .admin-blood-request-contact {
+    flex: 1 1 calc(50% - 52px);
+  }
+
+  .admin-blood-request-condition {
+    flex-basis: calc(100% - 52px);
+    margin-left: 44px;
+  }
+
+  .admin-blood-request-row-actions {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+
+  .admin-blood-request-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-approval-record-name,
+  .admin-approval-record-id {
+    flex: 1 1 calc(50% - 52px);
+  }
+
+  .admin-approval-record-email {
+    flex: 1 1 calc(100% - 52px);
+    margin-left: 52px;
+  }
+
+  .admin-approval-record-actions {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+
+  .admin-stat-record {
+    flex-wrap: wrap;
+    column-gap: 12px;
+    row-gap: 5px;
+  }
+
+  .admin-stat-record-name {
+    flex: 1 1 calc(42% - 52px);
+  }
+
+  .admin-stat-record-id {
+    flex: 1 1 30%;
+  }
+
+  .admin-stat-record-email {
+    flex: 1 1 calc(100% - 105px);
+    margin-left: 52px;
+  }
+
   .admin-account-list > li {
     align-items: flex-start;
     flex-wrap: wrap;
@@ -376,9 +1255,156 @@
     flex-direction: column;
   }
 
+  .admin-panel-heading {
+    align-items: flex-start;
+  }
+
+  .admin-stat-details-actions {
+    gap: 8px;
+  }
+
+  .admin-stat-record {
+    position: relative;
+    min-height: 58px;
+    gap: 7px 10px;
+    padding: 9px;
+  }
+
+  .admin-stat-record-name {
+    flex: 1 1 calc(100% - 112px);
+    padding-right: 75px;
+  }
+
+  .admin-stat-record-id,
+  .admin-stat-record-email {
+    flex: 1 1 calc(100% - 52px);
+    margin-left: 50px;
+  }
+
+  .admin-stat-record-view {
+    position: absolute;
+    top: 10px;
+    right: 9px;
+  }
+
+  .admin-approval-record {
+    position: relative;
+    min-height: 0;
+    gap: 7px 9px;
+    padding: 9px;
+  }
+
+  .admin-blood-request-row {
+    position: relative;
+    min-height: 0;
+    gap: 7px 9px;
+    padding: 9px;
+  }
+
+  .admin-blood-request-patient,
+  .admin-blood-request-condition,
+  .admin-blood-request-hospital,
+  .admin-blood-request-contact,
+  .admin-blood-request-units,
+  .admin-blood-request-date {
+    flex: 1 1 calc(100% - 48px);
+    margin-left: 43px;
+  }
+
+  .admin-blood-request-condition,
+  .admin-blood-request-hospital,
+  .admin-blood-request-contact {
+    white-space: normal;
+  }
+
+  .admin-blood-request-group {
+    position: absolute;
+    top: 9px;
+    left: 9px;
+  }
+
+  .admin-blood-request-row-actions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    margin-left: 43px;
+  }
+
+  .admin-approval-record-name,
+  .admin-approval-record-id,
+  .admin-approval-record-email {
+    flex: 1 1 calc(100% - 52px);
+    margin-left: 52px;
+  }
+
+  .admin-approval-record-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-left: 52px;
+  }
+
+  .admin-approval-record-actions > button {
+    flex: 1 1 auto;
+  }
+
+  .admin-approval-detail {
+    gap: 11px;
+    padding: 12px;
+  }
+
+  .admin-approval-detail .admin-approval-photos img {
+    width: min(100%, 150px);
+    height: 115px;
+  }
+
+  .admin-user-detail-card {
+    gap: 14px;
+    padding: 13px;
+  }
+
+  .admin-blood-request-detail {
+    gap: 11px;
+    padding: 12px;
+  }
+
+  .admin-blood-request-actions {
+    justify-content: flex-start;
+  }
+
+  .admin-user-detail-header {
+    gap: 10px;
+  }
+
+  .admin-user-avatar.is-large {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+    font-size: 19px;
+  }
+
+  .admin-user-detail-identity h3 {
+    font-size: 15px;
+  }
+
+  .admin-user-detail-grid {
+    gap: 7px;
+  }
+
+  .admin-user-detail-item {
+    min-width: calc(50% - 7px);
+    flex-basis: calc(50% - 7px);
+    padding: 9px;
+  }
+
   .admin-story-list li > div {
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-stat-card,
+  .admin-stat-details-close {
+    transition-duration: 0.01ms;
   }
 }

@@ -5,6 +5,8 @@ import './landing.css'
 import './reference-theme.css'
 import './auth.css'
 import './admin.css'
+import './blog.css'
+import './blood-requests.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(

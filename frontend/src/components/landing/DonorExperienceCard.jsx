@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/useAuth'
 import { experienceApi } from '../../services/api/experienceApi'
@@ -21,7 +21,7 @@ function Avatar({ name, url, className = '' }) {
   )
 }
 
-function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
+function DonorExperienceCard({ experience, owner = false, onEdit, onDelete, onOpen, onSocialUpdate, expanded = false }) {
   const { status: authStatus, user } = useAuth()
   const { t, language } = useLanguage()
   const navigate = useNavigate()
@@ -30,11 +30,11 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
   const [reactionCount, setReactionCount] = useState(experience.reactionCount || 0)
   const [currentReaction, setCurrentReaction] = useState(experience.currentReaction || null)
   const [commentCount, setCommentCount] = useState(experience.commentCount || 0)
-  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [commentsOpen, setCommentsOpen] = useState(expanded)
   const [comments, setComments] = useState([])
   const [commentPages, setCommentPages] = useState(0)
   const [commentPage, setCommentPage] = useState(0)
-  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentsLoading, setCommentsLoading] = useState(expanded)
   const [commentsError, setCommentsError] = useState('')
   const [commentText, setCommentText] = useState('')
   const [commentSaving, setCommentSaving] = useState(false)
@@ -44,9 +44,10 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
   const [editingCommentText, setEditingCommentText] = useState('')
   const [commentActionError, setCommentActionError] = useState('')
   const images = experience.images?.length ? experience.images : [experience.photoUrl].filter(Boolean)
-  const longMessage = experience.message.length > 260
+  const messageWords = experience.message.trim().split(/\s+/u)
+  const longMessage = !expanded && messageWords.length > 20
   const visibleMessage = longMessage && !showFullMessage
-    ? `${experience.message.slice(0, 260).trimEnd()}…`
+    ? messageWords.slice(0, 20).join(' ')
     : experience.message
 
   useEffect(() => {
@@ -64,7 +65,23 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
     return () => window.removeEventListener('keydown', closeOnEscape)
   }, [activeImage, images.length])
 
-  async function loadComments(page = 1) {
+  function toggleMessage() {
+    if (!expanded && longMessage) setShowFullMessage((current) => !current)
+  }
+
+  function handleCardKeyDown(event) {
+    if (expanded || !longMessage || event.target !== event.currentTarget) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      toggleMessage()
+    }
+  }
+
+  function openFullPost() {
+    if (onOpen) onOpen(experience)
+  }
+
+  const loadComments = useCallback(async (page = 1) => {
     setCommentsLoading(true)
     setCommentsError('')
     try {
@@ -77,7 +94,26 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
     } finally {
       setCommentsLoading(false)
     }
-  }
+  }, [experience.id, t])
+
+  useEffect(() => {
+    if (!expanded || commentPage !== 0) return undefined
+    let active = true
+    experienceApi.comments(experience.id, { page: 1, limit: 5 }).then(
+      (result) => {
+        if (!active) return
+        setComments(result.comments)
+        setCommentPages(result.pagination.pages)
+        setCommentPage(1)
+      },
+      (error) => {
+        if (active) setCommentsError(translateErrorMessage(error, t))
+      },
+    ).finally(() => {
+      if (active) setCommentsLoading(false)
+    })
+    return () => { active = false }
+  }, [commentPage, experience.id, expanded, t])
 
   async function toggleComments() {
     const nextOpen = !commentsOpen
@@ -99,6 +135,7 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
         : await experienceApi.react(experience.id, 'love')
       setReactionCount(result.count)
       setCurrentReaction(result.currentReaction)
+      onSocialUpdate?.(experience.id, { reactionCount: result.count, currentReaction: result.currentReaction })
     } catch (error) {
       setSocialActionError(translateErrorMessage(error, t))
     } finally {
@@ -119,7 +156,9 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
     try {
       const result = await experienceApi.createComment(experience.id, content)
       setComments((current) => [...current, result.comment])
-      setCommentCount((count) => count + 1)
+      const nextCommentCount = commentCount + 1
+      setCommentCount(nextCommentCount)
+      onSocialUpdate?.(experience.id, { commentCount: nextCommentCount })
       setCommentText('')
       setCommentPage(1)
       setCommentPages(Math.max(1, commentPages))
@@ -149,7 +188,9 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
     try {
       await experienceApi.deleteComment(comment.id)
       setComments((current) => current.filter((item) => item.id !== comment.id))
-      setCommentCount((count) => Math.max(0, count - 1))
+      const nextCommentCount = Math.max(0, commentCount - 1)
+      setCommentCount(nextCommentCount)
+      onSocialUpdate?.(experience.id, { commentCount: nextCommentCount })
     } catch (error) {
       setCommentActionError(translateErrorMessage(error, t))
     }
@@ -157,7 +198,17 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
 
   return (
     <>
-      <article className={`experience-card${owner ? ' experience-card-owner' : ''}`}>
+      <article
+        aria-expanded={longMessage ? showFullMessage : undefined}
+        aria-label={longMessage ? t('পোস্টের বিবরণ দেখান বা লুকান: {name}', { name: experience.donorName }) : undefined}
+        className={`experience-card${owner ? ' experience-card-owner' : ''}${longMessage ? ' is-clickable' : ''}${expanded ? ' is-expanded' : ''}`}
+        onClick={(event) => {
+          if (expanded || !longMessage || !(event.target instanceof Element) || event.target.closest('a, button, input, textarea, select, form, [role="button"]')) return
+          toggleMessage()
+        }}
+        onKeyDown={handleCardKeyDown}
+        tabIndex={longMessage ? 0 : undefined}
+      >
         <header className="experience-post-header">
           <Link
             aria-label={t('পাবলিক প্রোফাইল: {name}', { name: experience.donorName })}
@@ -168,12 +219,12 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
             <span className="experience-author-copy">
               <strong>{experience.donorName}</strong>
               <span>{experience.bloodGroup} <span aria-hidden="true">•</span> {experience.division}, {experience.district}{experience.location ? ` · ${experience.location}` : ''}</span>
-              <time dateTime={experience.createdAt}>{formatDate(experience.createdAt)}</time>
+              <time dateTime={experience.createdAt}>{formatDate(experience.createdAt, { dateStyle: 'medium' }, language)}</time>
             </span>
           </Link>
         </header>
-        <div className={`experience-gallery experience-gallery-count-${Math.min(images.length, 5)}`}>
-          {images.slice(0, 4).map((image, index) => (
+        <div className={`experience-gallery experience-gallery-count-${Math.min(images.length, 5)}${expanded ? ' is-expanded-gallery' : ''}`}>
+          {images.slice(0, expanded ? 5 : 4).map((image, index) => (
             <button
               aria-label={t('ছবি {number} / {total} দেখুন', { number: index + 1, total: images.length })}
               className={`experience-gallery-image${index === 0 ? ' is-cover' : ''}${index === 3 && images.length > 4 ? ' has-more' : ''}`}
@@ -182,20 +233,27 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
               type="button"
             >
               <img alt={t('দাতার রক্তদানের ছবি {number}', { number: index + 1 })} loading={index > 0 ? 'lazy' : 'eager'} src={image} />
-              {index === 3 && images.length > 4 && <span>+{images.length - 4}</span>}
+              {index === 3 && !expanded && images.length > 4 && <span>+{images.length - 4}</span>}
             </button>
           ))}
         </div>
         <div className="experience-card-content">
-          <blockquote>{visibleMessage}</blockquote>
+          <blockquote id={`experience-message-${experience.id}${expanded ? '-detail' : ''}`}>{visibleMessage}{longMessage && !showFullMessage && '...'}</blockquote>
           {longMessage && (
-            <button className="experience-read-more" onClick={() => setShowFullMessage(true)} type="button">
-              {t('আরও পড়ুন')}
+            <button
+              aria-controls={`experience-message-${experience.id}${expanded ? '-detail' : ''}`}
+              aria-expanded={showFullMessage}
+              className="experience-read-more"
+              onClick={() => setShowFullMessage((current) => !current)}
+              type="button"
+            >
+              {showFullMessage ? t('কম দেখুন') : t('আরও পড়ুন')}
             </button>
           )}
           <div className="experience-card-meta">
             <span>🗓 {t('রক্তদানের তারিখ:')} {formatDate(experience.donationDate, { dateStyle: 'medium' }, language)}</span>
-            {experience.donationCount && <span>🩸 {experience.donationCount} {t('বার')}</span>}
+            <span>🩸 {experience.donationCount || 0} {t('বার')}</span>
+            {expanded && <span>✦ {t('প্রকাশের তারিখ:')} {formatDate(experience.createdAt, { dateStyle: 'medium' }, language)}</span>}
           </div>
           <div className="experience-social-summary">
             <span aria-label={`${reactionCount} ${t('প্রতিক্রিয়া')}`}>❤️ {reactionCount} {t('প্রতিক্রিয়া')}</span>
@@ -214,6 +272,9 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete }) {
               ❤️ {currentReaction === 'love' ? t('ভালোবাসা জানিয়েছেন') : t('প্রতিক্রিয়া জানান')}
             </button>
             <button aria-expanded={commentsOpen} onClick={toggleComments} type="button">💬 {t('মন্তব্য করুন')}</button>
+            {onOpen && !expanded && (
+              <button onClick={openFullPost} type="button">{t('পোস্টের বিস্তারিত')}</button>
+            )}
           </div>
           {socialActionError && <p className="experience-comment-error" role="alert">{t(socialActionError)}</p>}
           {commentsOpen && (

@@ -622,6 +622,26 @@ test('registration, profiles, donor search, and cookie-based authentication life
     const createdExperienceBody = await createdExperienceResponse.json()
     assert.equal(createdExperienceBody.success, true)
     createdExperience = createdExperienceBody.data.experience
+    assert.equal(createdExperience.status, 'pending')
+    assert.equal(createdExperienceBody.message, 'আপনার অনুভূতিটি জমা হয়েছে। Admin অনুমোদন করার পর এটি প্রকাশিত হবে।')
+    const pendingFeed = await fetch(`${baseUrl}/api/experiences?page=1&limit=24`)
+    assert.equal(
+      (await pendingFeed.json()).experiences.some(({ id }) => id === createdExperience.id),
+      false,
+    )
+    assert.equal((await fetch(`${baseUrl}/api/experiences/${createdExperience.id}`)).status, 404)
+    assert.equal((await Experience.findById(createdExperience.id).lean()).status, 'pending')
+    const pendingDonorExperiences = await fetch(
+      `${baseUrl}/api/users/${registered.user.id}/experiences`,
+    )
+    assert.equal(
+      (await pendingDonorExperiences.json()).experiences.some(({ id }) => id === createdExperience.id),
+      false,
+    )
+    await Experience.updateOne(
+      { _id: createdExperience.id, status: 'pending' },
+      { $set: { status: 'approved' } },
+    )
     let ownProfile = await fetch(`${baseUrl}/api/users/profile`, {
       headers: { cookie: sessionCookie },
     }).then((response) => response.json()).then(({ user }) => user)
@@ -677,7 +697,7 @@ test('registration, profiles, donor search, and cookie-based authentication life
     const mineList = await fetch(`${baseUrl}/api/experiences/mine`, {
       headers: { cookie: sessionCookie },
     })
-    assert.equal((await mineList.json()).experiences[0].status, undefined)
+    assert.equal((await mineList.json()).experiences[0].status, 'approved')
     const authenticatedUser = await fetch(`${baseUrl}/api/auth/me`, {
       headers: { cookie: sessionCookie },
     })
@@ -701,7 +721,7 @@ test('registration, profiles, donor search, and cookie-based authentication life
     )
     assert.equal(removedModerationEndpoint.status, 404)
     const immediatelyPublicExperience = await Experience.findById(createdExperience.id).lean()
-    assert.equal(immediatelyPublicExperience.status, undefined)
+    assert.equal(immediatelyPublicExperience.status, 'approved')
     assert.equal(immediatelyPublicExperience.isPublic, true)
     const storedImage = await fetch(`${baseUrl}${createdExperience.images[0]}`)
     assert.equal(storedImage.status, 200)
@@ -742,6 +762,11 @@ test('registration, profiles, donor search, and cookie-based authentication life
       false,
     )
     assert.equal((await fetch(`${baseUrl}/api/experiences/${createdExperience.id}`)).status, 404)
+    const feedAfterEdit = await fetch(`${baseUrl}/api/experiences?page=1&limit=24`)
+    assert.equal(
+      (await feedAfterEdit.json()).experiences.some(({ id }) => id === createdExperience.id),
+      false,
+    )
     const profileExperiencesWhenPrivate = await fetch(
       `${baseUrl}/api/users/${registered.user.id}/experiences`,
     )
@@ -780,6 +805,7 @@ test('registration, profiles, donor search, and cookie-based authentication life
       photoUrl: '/api/uploads/experiences/test-fixture.webp',
       publicConsent: true,
       isPublic: true,
+      status: 'approved',
     })
     otherDonorExperienceId = otherDonorExperience.id
     const limitedExperienceProfile = await fetch(
@@ -995,16 +1021,22 @@ test('registration, profiles, donor search, and cookie-based authentication life
       body: editForm,
     })
     assert.equal(updatedExperience.status, 200)
-    const editedExperience = (await updatedExperience.json()).experience
-    assert.equal(editedExperience.status, undefined)
+    const updatedExperienceBody = await updatedExperience.json()
+    const editedExperience = updatedExperienceBody.experience
+    assert.equal(editedExperience.status, 'pending')
+    assert.equal(
+      updatedExperienceBody.message,
+      'আপনার অনুভূতি হালনাগাদ হয়েছে। Admin অনুমোদন করার পর এটি আবার প্রকাশিত হবে।',
+    )
     assert.equal(editedExperience.isPublic, true)
     assert.equal(editedExperience.message, 'রক্ত দেওয়ার অভিজ্ঞতা আমাকে আরও সহানুভূতিশীল ও আশাবাদী করেছে।')
     assert.deepEqual(editedExperience.images.slice(0, 2), createdExperience.images.slice(0, 2))
     assert.equal(editedExperience.images.length, 3)
     assert.equal((await fetch(`${baseUrl}${editedExperience.images[2]}`)).status, 200)
     assert.equal((await fetch(`${baseUrl}${createdExperience.images[2]}`)).status, 404)
-    assert.equal((await fetch(reactionPath)).status, 200)
-    assert.equal((await fetch(commentPath)).status, 200)
+    assert.equal((await fetch(`${baseUrl}/api/experiences/${createdExperience.id}`)).status, 404)
+    assert.equal((await fetch(reactionPath)).status, 404)
+    assert.equal((await fetch(commentPath)).status, 404)
 
     const deletedExperience = await fetch(`${baseUrl}/api/experiences/${createdExperience.id}`, {
       method: 'DELETE',

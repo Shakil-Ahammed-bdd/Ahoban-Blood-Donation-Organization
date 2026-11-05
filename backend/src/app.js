@@ -12,6 +12,10 @@ const leaderboardRoutes = require('./routes/leaderboard.routes')
 const statsRoutes = require('./routes/stats.routes')
 const userRoutes = require('./routes/user.routes')
 const adminRoutes = require('./routes/admin.routes')
+const blogRoutes = require('./routes/blog.routes')
+const adminBlogRoutes = require('./routes/admin-blog.routes')
+const bloodRequestRoutes = require('./routes/blood-request.routes')
+const { blogImageDirectory } = require('./services/blog-image-storage')
 const { avatarDirectory, imageDirectory } = require('./services/experience-image-storage')
 
 const app = express()
@@ -22,8 +26,16 @@ app.use(
     credentials: true,
   }),
 )
-app.use(express.json({ limit: '16kb' }))
+app.use(express.json({ limit: '128kb' }))
 app.use(cookieParser())
+app.use(
+  '/api/uploads/blogs',
+  express.static(blogImageDirectory, {
+    fallthrough: true,
+    index: false,
+    maxAge: '1d',
+  }),
+)
 app.use(
   '/api/uploads/experiences',
   express.static(imageDirectory, {
@@ -42,6 +54,9 @@ app.use(
 )
 app.use('/api/auth', authRoutes)
 app.use('/api/admins', adminRoutes)
+app.use('/api/admins/blogs', adminBlogRoutes)
+app.use('/api/blogs', blogRoutes)
+app.use('/api/blood-requests', bloodRequestRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/donors', donorRoutes)
 app.use('/api/experiences', experienceRoutes)

@@ -13,6 +13,9 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import DonorExperiences from './components/landing/DonorExperiences'
 import DonorLeaderboard from './components/landing/DonorLeaderboard'
 import { LanguageProvider } from './contexts/LanguageProvider'
+import BlogPage from './pages/BlogPage'
+import BlogDetailsPage from './pages/BlogDetailsPage'
+import BloodRequestsPage from './pages/BloodRequestsPage'
 
 function LandingPage() {
   return (
@@ -59,6 +62,15 @@ function TopDonorsRoute() {
   )
 }
 
+function BlogRoute({ children }) {
+  return (
+    <AppLayout>
+      <Navbar />
+      {children}
+    </AppLayout>
+  )
+}
+
 function AuthenticationRoute({ children }) {
   return (
     <AppLayout>
@@ -89,6 +101,9 @@ function App() {
             <Route element={<DonorDirectoryRoute />} path="/donors" />
             <Route element={<DonorProfileRoute />} path="/donors/:id" />
             <Route element={<DonorExperiencesRoute />} path="/donor-experiences" />
+            <Route element={<BlogRoute><BloodRequestsPage /></BlogRoute>} path="/blood-requests" />
+            <Route element={<BlogRoute><BlogPage /></BlogRoute>} path="/blog" />
+            <Route element={<BlogRoute><BlogDetailsPage /></BlogRoute>} path="/blog/:slug" />
             <Route element={<TopDonorsRoute />} path="/top-donors" />
             <Route element={<ProtectedRoute roles={['admin', 'super_admin']} />}>
               <Route element={<AppLayout><Navbar /><AdminDashboardPage /></AppLayout>} path="/admin" />

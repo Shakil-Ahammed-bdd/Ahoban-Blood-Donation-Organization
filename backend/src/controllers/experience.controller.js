@@ -40,13 +40,45 @@ async function listMine(req, res, next) {
   }
 }
 
+async function listPending(req, res, next) {
+  try {
+    const result = await experienceService.listPendingExperiences(parsePagination(req.query))
+    res.json({ success: true, status: 'ok', data: result, ...result })
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function moderatePending(req, res, next, status) {
+  try {
+    const experience = await experienceService.moderatePendingExperience(req.params.id, status)
+    res.json({
+      success: true,
+      status: 'ok',
+      message: status === 'approved' ? 'Experience approved.' : 'Experience rejected.',
+      data: { experience },
+      experience,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+function approvePending(req, res, next) {
+  return moderatePending(req, res, next, 'approved')
+}
+
+function rejectPending(req, res, next) {
+  return moderatePending(req, res, next, 'rejected')
+}
+
 async function create(req, res, next) {
   try {
     const experience = await experienceService.createExperience(req.user, req.body, req.files)
     res.status(201).json({
       success: true,
       status: 'ok',
-      message: 'Experience submitted successfully and is now public.',
+      message: 'আপনার অনুভূতিটি জমা হয়েছে। Admin অনুমোদন করার পর এটি প্রকাশিত হবে।',
       data: { experience },
       experience,
     })
@@ -66,7 +98,7 @@ async function update(req, res, next) {
     res.json({
       success: true,
       status: 'ok',
-      message: 'Experience updated successfully and remains public.',
+      message: 'আপনার অনুভূতি হালনাগাদ হয়েছে। Admin অনুমোদন করার পর এটি আবার প্রকাশিত হবে।',
       data: { experience },
       experience,
     })
@@ -86,8 +118,11 @@ async function remove(req, res, next) {
 
 module.exports = {
   create,
+  approvePending,
+  listPending,
   listMine,
   listPublic,
+  rejectPending,
   readPublic,
   remove,
   update,

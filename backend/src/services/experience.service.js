@@ -4,6 +4,7 @@ const HttpError = require('../errors/http-error')
 const { removeImages, storeImages } = require('./experience-image-storage')
 const { getExperienceSummaries, deleteExperienceInteractions } = require('./experience-social.service')
 const { validateExperience } = require('../utils/experience-validation')
+const { approvedExperienceCriteria } = require('../utils/experience-status')
 
 function ensureDatabase() {
   if (mongoose.connection.readyState !== 1) {
@@ -20,6 +21,7 @@ function serializeExperience(experience) {
     id: String(experience._id || experience.id),
     donorId: String(donor?._id || experience.userId || ''),
     profilePhotoUrl: donor?.profilePhotoUrl || '',
+    ...(donor?.email ? { email: donor.email } : {}),
     donorName: experience.donorName,
     publicUserId: experience.publicUserId,
     bloodGroup: experience.bloodGroup,
@@ -31,6 +33,7 @@ function serializeExperience(experience) {
     ...(experience.donationCount ? { donationCount: experience.donationCount } : {}),
     images,
     photoUrl: images[0] || '',
+    status: experience.status || 'approved',
     isPublic: experience.isPublic ?? experience.publicConsent ?? false,
     createdAt: experience.createdAt,
     updatedAt: experience.updatedAt,
@@ -42,7 +45,7 @@ async function listPublicExperiences({ page = 1, limit = 9, userId, currentUserI
   if (userId && !mongoose.isValidObjectId(userId)) {
     throw new HttpError(404, 'DONOR_NOT_FOUND', 'This donor profile is not public.')
   }
-  const criteria = { isPublic: true, ...(userId ? { userId } : {}) }
+  const criteria = approvedExperienceCriteria(userId ? { userId } : {})
   const skip = (page - 1) * limit
   const [experiences, total] = await Promise.all([
     Experience.find(criteria)
@@ -76,7 +79,7 @@ async function getPublicExperience(id, currentUserId) {
   }
   const experience = await Experience.findOne({
     _id: id,
-    isPublic: true,
+    ...approvedExperienceCriteria(),
   }).populate('userId', 'profilePhotoUrl').lean()
   if (!experience) {
     throw new HttpError(404, 'EXPERIENCE_NOT_FOUND', 'The experience was not found.')
@@ -99,6 +102,7 @@ async function createExperience(user, body, file) {
       userId: user._id,
       images,
       photoUrl: images[0],
+      status: 'pending',
       isPublic: true,
       publicConsent: true,
     })
@@ -152,6 +156,7 @@ async function updateExperience(id, user, body, files = []) {
   Object.assign(experience, values, {
     images: newImages,
     photoUrl: newImages[0] || '',
+    status: 'pending',
     isPublic: true,
     publicConsent: true,
   })
@@ -179,11 +184,50 @@ async function deleteExperience(id, userId) {
   await removeImages(experience.images?.length ? experience.images : [experience.photoUrl])
 }
 
+async function listPendingExperiences({ page = 1, limit = 20 } = {}) {
+  ensureDatabase()
+  const criteria = { status: 'pending' }
+  const [experiences, total] = await Promise.all([
+    Experience.find(criteria)
+      .populate('userId', 'profilePhotoUrl email')
+      .sort({ createdAt: 1, _id: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    Experience.countDocuments(criteria),
+  ])
+  return {
+    experiences: experiences.map(serializeExperience),
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+  }
+}
+
+async function moderatePendingExperience(id, status) {
+  ensureDatabase()
+  if (!mongoose.isValidObjectId(id)) {
+    throw new HttpError(404, 'EXPERIENCE_NOT_FOUND', 'The pending experience was not found.')
+  }
+  if (!['approved', 'rejected'].includes(status)) {
+    throw new HttpError(400, 'INVALID_EXPERIENCE_STATUS', 'Choose approved or rejected.')
+  }
+  const experience = await Experience.findOneAndUpdate(
+    { _id: id, status: 'pending' },
+    { $set: { status, isPublic: status === 'approved' } },
+    { returnDocument: 'after', runValidators: true },
+  ).populate('userId', 'profilePhotoUrl')
+  if (!experience) {
+    throw new HttpError(404, 'EXPERIENCE_NOT_FOUND', 'The pending experience was not found.')
+  }
+  return serializeExperience(experience)
+}
+
 module.exports = {
   createExperience,
   deleteExperience,
   getPublicExperience,
+  listPendingExperiences,
   listMyExperiences,
   listPublicExperiences,
+  moderatePendingExperience,
   updateExperience,
 }

@@ -3,6 +3,7 @@ const User = require('../models/User')
 const Experience = require('../models/Experience')
 const HttpError = require('../errors/http-error')
 const { createAdminAccount } = require('./auth.service')
+const { approvedExperienceCriteria } = require('../utils/experience-status')
 
 function ensureDatabase() {
   if (mongoose.connection.readyState !== 1) {
@@ -25,6 +26,14 @@ function serializeAdmin(user) {
     phone: user.phone,
     role: user.role || 'user',
     isActive: user.isActive !== false,
+    bloodGroup: user.bloodGroup,
+    division: user.division,
+    district: user.district,
+    upazila: user.upazila || '',
+    location: user.location,
+    profilePhotoUrl: user.profilePhotoUrl || '',
+    previousBloodDonations: user.previousBloodDonations || 0,
+    lastDonationDate: user.lastDonationDate || null,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   }
@@ -39,7 +48,7 @@ async function getOverview() {
       User.countDocuments({ role: 'admin' }),
       User.countDocuments({ role: 'admin', isActive: { $ne: false } }),
       User.countDocuments({ isSearchable: true }),
-      Experience.countDocuments({ isPublic: true }),
+      Experience.countDocuments(approvedExperienceCriteria()),
     ])
   return { totalAccounts, totalUsers, totalAdmins, activeAdmins, totalDonors, totalExperiences }
 }
@@ -49,7 +58,7 @@ async function listUsers({ page = 1, limit = 20 } = {}) {
   const skip = (page - 1) * limit
   const [users, total] = await Promise.all([
     User.find({ role: 'user' })
-      .select('userId fullName email role isActive createdAt')
+      .select('userId fullName email phone bloodGroup division district upazila location profilePhotoUrl previousBloodDonations lastDonationDate role isActive createdAt')
       .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(limit)
@@ -62,6 +71,15 @@ async function listUsers({ page = 1, limit = 20 } = {}) {
       userId: user.userId,
       fullName: user.fullName,
       email: user.email,
+      phone: user.phone,
+      bloodGroup: user.bloodGroup,
+      division: user.division,
+      district: user.district,
+      upazila: user.upazila || '',
+      location: user.location,
+      profilePhotoUrl: user.profilePhotoUrl || '',
+      previousBloodDonations: user.previousBloodDonations || 0,
+      lastDonationDate: user.lastDonationDate || null,
       role: user.role,
       isActive: user.isActive !== false,
       createdAt: user.createdAt,

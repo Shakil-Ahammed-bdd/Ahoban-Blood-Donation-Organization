@@ -54,7 +54,7 @@ const steps = [
 function HowItWorks() {
   const { t } = useLanguage()
   return (
-    <section aria-labelledby="how-it-works-title" className="section process-section" id="about">
+    <section aria-labelledby="how-it-works-title" className="section process-section">
       <div className="section-container">
         <Reveal>
           <SectionHeading

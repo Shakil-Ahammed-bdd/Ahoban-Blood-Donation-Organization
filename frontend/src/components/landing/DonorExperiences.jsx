@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Reveal from '../shared/Reveal'
 import { useAuth } from '../../contexts/useAuth'
@@ -40,10 +40,11 @@ function DonorExperiences() {
   const [page, setPage] = useState(1)
   const [retry, setRetry] = useState(0)
   const [feed, setFeed] = useState({ experiences: [], pagination: null })
-  const [mineState, setMineState] = useState({ userId: null, experiences: [], error: '' })
+  const [mineState, setMineState] = useState({ userId: null, experiences: [] })
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [modal, setModal] = useState(null)
+  const postRequestId = useRef(0)
   const [form, setForm] = useState({
     message: '',
     donationDate: '',
@@ -64,10 +65,42 @@ function DonorExperiences() {
   const mine = authStatus === 'authenticated' && mineState.userId === user?.id
     ? mineState.experiences
     : []
-  const mineError = authStatus === 'authenticated' && mineState.userId === user?.id
-    ? mineState.error
-    : ''
   const ownedExperienceIds = new Set(mine.map(({ id }) => id))
+
+  async function openExperience(experience) {
+    const requestId = ++postRequestId.current
+    setModal({ type: 'view', experienceId: experience.id, experience: null, loading: true, error: '' })
+    try {
+      const { experience: fullExperience } = await experienceApi.read(experience.id)
+      if (requestId === postRequestId.current) {
+        setModal({ type: 'view', experienceId: experience.id, experience: fullExperience, loading: false, error: '' })
+      }
+    } catch (requestError) {
+      if (requestId === postRequestId.current) {
+        setModal({
+          type: 'view',
+          experienceId: experience.id,
+          experience: null,
+          loading: false,
+          error: translateErrorMessage(requestError, translationRef.current),
+        })
+      }
+    }
+  }
+
+  const closeExperience = useCallback(() => {
+    postRequestId.current += 1
+    setModal(null)
+  }, [])
+
+  useEffect(() => {
+    if (modal?.type !== 'view') return undefined
+    function closeOnEscape(event) {
+      if (event.key === 'Escape') closeExperience()
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [closeExperience, modal?.type])
 
   useEffect(() => () => {
     previews.forEach(({ url }) => URL.revokeObjectURL(url))
@@ -99,7 +132,7 @@ function DonorExperiences() {
     experienceApi.mine().then(
       ({ experiences }) => {
         if (active) {
-          setMineState({ userId: user.id, experiences, error: '' })
+          setMineState({ userId: user.id, experiences })
           if (editId) {
             const experience = experiences.find(({ id }) => id === editId)
             if (experience) {
@@ -117,7 +150,7 @@ function DonorExperiences() {
             void refresh()
             return
           }
-          setMineState({ userId: user.id, experiences: [], error: translateErrorMessage(requestError, translationRef.current) })
+          setMineState({ userId: user.id, experiences: [] })
           if (editId) {
             setError(translateErrorMessage(requestError, translationRef.current))
             setSearchParams({}, { replace: true })
@@ -208,10 +241,18 @@ function DonorExperiences() {
     setFeed(publicResult.value)
     setLoadError('')
     if (mineResult.status === 'fulfilled') {
-      setMineState({ userId: user.id, experiences: mineResult.value.experiences, error: '' })
+      setMineState({ userId: user.id, experiences: mineResult.value.experiences })
     } else {
-      setMineState({ userId: user.id, experiences: [], error: mineResult.reason.message })
+      setMineState({ userId: user.id, experiences: [] })
     }
+  }
+
+  function updateExperienceSocial(experienceId, updates) {
+    setFeed((current) => ({
+      ...current,
+      experiences: current.experiences.map((experience) =>
+        experience.id === experienceId ? { ...experience, ...updates } : experience),
+    }))
   }
 
   async function submitExperience(event) {
@@ -274,6 +315,7 @@ function DonorExperiences() {
     try {
       await experienceApi.delete(experience.id)
       await refreshExperiences()
+      if (modal?.type === 'view' && modal.experienceId === experience.id) closeExperience()
       setNotice(t('আপনার অনুভূতি মুছে ফেলা হয়েছে।'))
     } catch (requestError) {
       setError(translateErrorMessage(requestError, t))
@@ -302,27 +344,6 @@ function DonorExperiences() {
         {notice && <p aria-live="polite" className="experience-notice" role="status">{t(notice)}</p>}
         {error && !modal && <p aria-live="polite" className="experience-error" role="alert">{t(error)}</p>}
 
-        {authStatus === 'authenticated' && mine.length > 0 && (
-          <section aria-labelledby="my-experiences-title" className="my-experiences">
-            <h3 id="my-experiences-title">{t('আপনার শেয়ার করা অনুভূতি')}</h3>
-            {mineError && <p className="experience-error" role="alert">{t(mineError)}</p>}
-            <div className="experience-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {mine.map((experience) => (
-                <DonorExperienceCard
-                  experience={experience}
-                  key={`${experience.id}:${experience.updatedAt}:${experience.reactionCount}:${experience.commentCount}:${experience.currentReaction}`}
-                  onDelete={deleteExperience}
-                  onEdit={openEdit}
-                  owner
-                />
-              ))}
-            </div>
-          </section>
-        )}
-        {authStatus === 'authenticated' && mineError && mine.length === 0 && (
-          <p className="experience-error" role="alert">{t('আপনার শেয়ার করা অনুভূতি লোড করা যায়নি।')} {t(mineError)}</p>
-        )}
-
         {loading && <p className="experience-state" role="status">{t('দাতাদের অনুভূতি লোড হচ্ছে…')}</p>}
         {!loading && loadError && (
           <div className="experience-state" role="alert">
@@ -344,6 +365,8 @@ function DonorExperiences() {
                     key={`${experience.id}:${experience.updatedAt}:${experience.reactionCount}:${experience.commentCount}:${experience.currentReaction}`}
                     onDelete={deleteExperience}
                     onEdit={openEdit}
+                    onOpen={openExperience}
+                    onSocialUpdate={updateExperienceSocial}
                     owner={owner}
                   />
                 )
@@ -359,6 +382,61 @@ function DonorExperiences() {
           </>
         )}
       </div>
+
+      {modal?.type === 'view' && (
+        <div
+          className="experience-modal-backdrop experience-detail-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeExperience()
+          }}
+        >
+          <section
+            aria-label={t('পোস্টের বিস্তারিত')}
+            aria-modal="true"
+            className="experience-modal experience-detail-modal"
+            onMouseDown={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <button
+              aria-label={t('বন্ধ করুন')}
+              className="experience-modal-close"
+              onClick={closeExperience}
+              type="button"
+            >
+              ×
+            </button>
+            {modal.loading && <p className="experience-detail-state" role="status">{t('পোস্টের বিস্তারিত লোড হচ্ছে…')}</p>}
+            {!modal.loading && modal.error && (
+              <div className="experience-detail-state" role="alert">
+                <p>{t('পোস্টের বিস্তারিত লোড করা যায়নি।')} {t(modal.error)}</p>
+                <button
+                  className="button button-secondary"
+                  onClick={() => {
+                    const selected = feed.experiences.find(({ id }) => id === modal.experienceId)
+                    if (selected) void openExperience(selected)
+                  }}
+                  type="button"
+                >
+                  {t('আবার চেষ্টা করুন')}
+                </button>
+              </div>
+            )}
+            {!modal.loading && !modal.error && modal.experience && (
+              <DonorExperienceCard
+                expanded
+                experience={modal.experience}
+                onDelete={deleteExperience}
+                onEdit={(experience) => {
+                  closeExperience()
+                  openEdit(experience)
+                }}
+                onSocialUpdate={updateExperienceSocial}
+                owner={ownedExperienceIds.has(modal.experience.id)}
+              />
+            )}
+          </section>
+        </div>
+      )}
 
       {modal?.type === 'login' && (
         <div className="experience-modal-backdrop" onMouseDown={(event) => {
@@ -445,7 +523,7 @@ function DonorExperiences() {
               </label>
               <label className="experience-consent">
                 <input checked={form.publicConsent} name="publicConsent" onChange={updateForm} type="checkbox" />
-                <span>{t('আমার অনুভূতি ও ছবি সবার জন্য প্রকাশ করতে সম্মত। জমা দেওয়ার পরপরই এটি প্রকাশিত হবে।')}</span>
+                <span>{t('আমার অনুভূতি ও ছবি সবার জন্য প্রকাশ করতে সম্মত। Admin অনুমোদনের পর এটি প্রকাশিত হবে।')}</span>
               </label>
               {fieldErrors.publicConsent && <small className="experience-field-error">{t(fieldErrors.publicConsent)}</small>}
               <button className="button button-primary experience-submit" disabled={saving} type="submit">
