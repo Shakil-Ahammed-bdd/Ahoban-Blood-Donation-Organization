@@ -106,7 +106,7 @@ function App() {
             <Route element={<BlogRoute><BlogDetailsPage /></BlogRoute>} path="/blog/:slug" />
             <Route element={<TopDonorsRoute />} path="/top-donors" />
             <Route element={<ProtectedRoute roles={['admin', 'super_admin']} />}>
-              <Route element={<AppLayout><Navbar /><AdminDashboardPage /></AppLayout>} path="/admin" />
+              <Route element={<AdminDashboardPage />} path="/admin" />
             </Route>
             <Route element={<ProtectedRoute />}>
               <Route element={<UserProfileRoute />} path="/profile" />

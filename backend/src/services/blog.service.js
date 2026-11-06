@@ -4,6 +4,7 @@ const BlogCategory = require('../models/BlogCategory')
 const HttpError = require('../errors/http-error')
 const { removeBlogImage, storeBlogImage } = require('./blog-image-storage')
 const { slugFromTitle, validateBlog } = require('../utils/blog-validation')
+const { sanitizeBlogContent } = require('../utils/sanitize-blog-content')
 
 const DEFAULT_CATEGORIES = [
   'Health Tips',
@@ -89,6 +90,15 @@ function serializeCategory(category) {
   }
 }
 
+function sanitizeAndValidateContent(content) {
+  const sanitized = sanitizeBlogContent(content)
+  const text = sanitized?.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;/gi, ' ').trim()
+  if (!sanitized || (!text && !/<(?:img|iframe)\b/i.test(sanitized))) {
+    throw new HttpError(400, 'INVALID_BLOG', 'Blog content must include text or media.')
+  }
+  return sanitized
+}
+
 function serializeBlog(blog) {
   return {
     id: String(blog._id || blog.id),
@@ -97,13 +107,13 @@ function serializeBlog(blog) {
     shortDescription: blog.shortDescription,
     coverImage: blog.coverImage,
     category: blog.category,
-    content: blog.content,
+    content: sanitizeBlogContent(blog.content),
     author: blog.author,
     status: blog.status,
     publishAt: blog.publishAt,
     featured: Boolean(blog.featured),
-    metaTitle: blog.metaTitle || '',
-    metaDescription: blog.metaDescription || '',
+    metaTitle: blog.metaTitle || blog.title,
+    metaDescription: blog.metaDescription || blog.shortDescription,
     createdAt: blog.createdAt,
     updatedAt: blog.updatedAt,
   }
@@ -175,6 +185,7 @@ async function createBlog(input, coverFile, userId) {
       ? { coverImage: '/api/uploads/blogs/00000000-0000-0000-0000-000000000000.webp' }
       : {}),
   })
+  values.content = sanitizeAndValidateContent(values.content)
   const category = await validateBlogCategoryStatus(values.category)
   values.category = category.name
   const slug = values.slug || slugFromTitle(values.title)
@@ -204,6 +215,9 @@ async function updateBlog(id, input, coverFile) {
   const blog = await Blog.findById(id)
   if (!blog) throw new HttpError(404, 'BLOG_NOT_FOUND', 'The blog post was not found.')
   const values = validateBlog(input, { partial: true })
+  if (Object.hasOwn(values, 'content')) {
+    values.content = sanitizeAndValidateContent(values.content)
+  }
   if (values.category && values.category !== blog.category) {
     const category = await validateBlogCategoryStatus(values.category)
     values.category = category.name

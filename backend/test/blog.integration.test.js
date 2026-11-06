@@ -28,19 +28,17 @@ function getSessionCookie(response) {
   return cookie.split(';')[0]
 }
 
-function blogForm({ title, slug, status = 'draft', category = 'Health Tips', cover = true, imageBytes } = {}) {
+function blogForm({ title, slug, status = 'draft', category = 'Health Tips', cover = true, imageBytes, content } = {}) {
   const form = new FormData()
   form.set('title', title || `Blood donation guide ${randomUUID()}`)
   form.set('slug', slug || `blood-donation-guide-${randomUUID()}`)
   form.set('shortDescription', 'A practical and helpful guide for blood donors.')
   form.set('category', category)
-  form.set('content', '## Prepare well\n\n**Stay hydrated** and learn more.\n\n- Bring your ID\n- Rest afterwards\n\n```js\nconst donor = true\n```')
+  form.set('content', content || '## Prepare well\n\n**Stay hydrated** and learn more.\n\n- Bring your ID\n- Rest afterwards\n\n```js\nconst donor = true\n```')
   form.set('author', 'Ahoban Editorial Team')
   form.set('status', status)
   form.set('publishAt', new Date().toISOString())
   form.set('featured', 'true')
-  form.set('metaTitle', 'Blood donation tips')
-  form.set('metaDescription', 'Helpful blood donation information.')
   if (cover) {
     form.set('coverImage', new Blob([imageBytes], { type: 'image/png' }), 'cover.png')
   }
@@ -186,13 +184,22 @@ test('blog CRUD, publication visibility, validation, and admin role authorizatio
     const draftResponse = await request('/admins/blogs', {
       method: 'POST',
       cookie: adminCookie,
-      body: blogForm({ status: 'draft', imageBytes }),
+      body: blogForm({
+        status: 'draft',
+        imageBytes,
+        content: '<h2 style="color:#b93140">রক্তদান</h2><p onclick="alert(1)">নিরাপদ <strong>লেখা</strong><script>alert(2)</script></p>',
+      }),
     })
     const draftBody = await draftResponse.json()
     assert.equal(draftResponse.status, 201, JSON.stringify(draftBody))
     const draft = draftBody.blog
     coverImages.push(draft.coverImage)
     assert.equal(draft.status, 'draft')
+    assert.match(draft.content, /<h2 style="color:#b93140">রক্তদান<\/h2>/)
+    assert.match(draft.content, /<strong>লেখা<\/strong>/)
+    assert.doesNotMatch(draft.content, /onclick|<script|alert\(/i)
+    assert.equal(draft.metaTitle, draft.title)
+    assert.equal(draft.metaDescription, draft.shortDescription)
     assert.match(draft.coverImage, /^\/api\/uploads\/blogs\/.+\.webp$/)
     const publicDraftList = await request('/blogs?page=1&limit=20')
     assert.equal((await publicDraftList.json()).blogs.some(({ id }) => id === draft.id), false)
@@ -211,10 +218,23 @@ test('blog CRUD, publication visibility, validation, and admin role authorizatio
     const publishedResponse = await request(`/admins/blogs/${draft.id}`, {
       method: 'PATCH',
       cookie: superAdminCookie,
-      body: blogForm({ title: draft.title, slug: draft.slug, status: 'published', cover: false }),
+      body: blogForm({
+        title: draft.title,
+        slug: draft.slug,
+        status: 'published',
+        cover: false,
+        content: '<p>Updated <em>rich</em> content.</p><a href="javascript:alert(1)">unsafe link</a>',
+      }),
     })
     assert.equal(publishedResponse.status, 200)
-    assert.equal((await publishedResponse.json()).blog.status, 'published')
+    const publishedBlog = (await publishedResponse.json()).blog
+    assert.equal(publishedBlog.status, 'published')
+    assert.equal(publishedBlog.metaTitle, publishedBlog.title)
+    assert.equal(publishedBlog.metaDescription, publishedBlog.shortDescription)
+    assert.match(publishedBlog.content, /<em>rich<\/em>/)
+    assert.doesNotMatch(publishedBlog.content, /javascript:|alert\(/i)
+    const publicRichBlog = await request(`/blogs/${draft.slug}`)
+    assert.match((await publicRichBlog.json()).blog.content, /<em>rich<\/em>/)
     const publicResponse = await request('/blogs?category=Health%20Tips&search=guide')
     const publicResult = await publicResponse.json()
     assert.equal(publicResult.blogs.some(({ id }) => id === draft.id), true)

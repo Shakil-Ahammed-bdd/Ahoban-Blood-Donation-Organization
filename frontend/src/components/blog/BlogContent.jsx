@@ -1,4 +1,65 @@
 import { Fragment } from 'react'
+import DOMPurify from 'dompurify'
+
+const RICH_CONTENT_PATTERN = /<\s*(?:a|blockquote|br|del|div|em|figure|h[1-6]|hr|iframe|img|li|mark|ol|p|pre|s|span|strong|sub|sup|table|u|ul)\b/i
+const RICH_TAGS = [
+  'a', 'blockquote', 'br', 'caption', 'code', 'del', 'div', 'em', 'figcaption', 'figure',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'iframe', 'img', 'li', 'mark', 'ol', 'p',
+  'pre', 's', 'span', 'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'tfoot', 'th',
+  'thead', 'tr', 'u', 'ul',
+]
+const RICH_ATTRIBUTES = [
+  'allow', 'allowfullscreen', 'alt', 'colspan', 'data-alignment', 'data-caption', 'data-color', 'data-indent', 'data-paragraph-spacing', 'data-type', 'frameborder',
+  'height', 'href', 'rel', 'rowspan', 'src', 'style', 'target', 'title', 'width',
+]
+const SAFE_STYLES = new Set([
+  'background-color', 'color', 'font-family', 'font-size', 'line-height', 'margin-bottom',
+  'margin-left', 'margin-right', 'text-align', 'width',
+])
+
+function sanitizeRichContent(content) {
+  const clean = DOMPurify.sanitize(content, {
+    ALLOWED_ATTR: RICH_ATTRIBUTES,
+    ALLOWED_TAGS: RICH_TAGS,
+    ALLOW_DATA_ATTR: false,
+    ALLOW_ARIA_ATTR: false,
+    FORBID_TAGS: ['script', 'style', 'object', 'embed', 'form'],
+  })
+  const template = document.createElement('template')
+  template.innerHTML = clean
+  for (const element of template.content.querySelectorAll('*')) {
+    if (element.tagName === 'IFRAME') {
+      try {
+        const url = new URL(element.getAttribute('src'), window.location.origin)
+        if (url.protocol !== 'https:' || !['www.youtube.com', 'www.youtube-nocookie.com'].includes(url.hostname)) {
+          element.remove()
+          continue
+        }
+      } catch {
+        element.remove()
+        continue
+      }
+    }
+    if (element.hasAttribute('style')) {
+      const declarations = [...element.style]
+        .filter((property) => SAFE_STYLES.has(property))
+        .map((property) => `${property}:${element.style.getPropertyValue(property)}`)
+      if (declarations.length) element.setAttribute('style', declarations.join(';'))
+      else element.removeAttribute('style')
+    }
+    if (element.tagName === 'IMG' && element.hasAttribute('data-caption')) {
+      const figure = document.createElement('figure')
+      figure.setAttribute('data-type', 'blog-image')
+      figure.setAttribute('data-alignment', element.getAttribute('data-alignment') || 'center')
+      element.replaceWith(figure)
+      figure.append(element)
+      const caption = document.createElement('figcaption')
+      caption.textContent = element.getAttribute('data-caption')
+      figure.append(caption)
+    }
+  }
+  return template.innerHTML
+}
 
 function safeUrl(value, image = false) {
   if (/^https:\/\//i.test(value)) return value
@@ -31,7 +92,11 @@ function InlineContent({ text }) {
 }
 
 function BlogContent({ content }) {
-  const lines = String(content || '').replace(/\r\n?/g, '\n').split('\n')
+  const source = String(content || '')
+  if (RICH_CONTENT_PATTERN.test(source)) {
+    return <div className="blog-content" dangerouslySetInnerHTML={{ __html: sanitizeRichContent(source) }} />
+  }
+  const lines = source.replace(/\r\n?/g, '\n').split('\n')
   const blocks = []
   let index = 0
   while (index < lines.length) {

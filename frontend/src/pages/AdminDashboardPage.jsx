@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/useAuth'
 import { adminApi } from '../services/api/adminApi'
 import { donorApi } from '../services/api/donorApi'
@@ -15,20 +15,61 @@ const EMPTY_DASHBOARD = {
   bloodRequestCounts: { pending: 0, approved: 0, rejected: 0 },
 }
 
-function formatDate(value) {
+function formatDate(value, language) {
   if (!value) return '—'
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value))
+  return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', { dateStyle: 'medium' }).format(new Date(value))
 }
 
-function formatDateTime(value) {
+function formatDateTime(value, language) {
   if (!value) return '—'
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 }
+
+const PORTAL_ICONS = {
+  home: 'M3 10.5 12 3l9 7.5M5 9v11h14V9M9 20v-6h6v6',
+  users: 'M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
+  drop: 'M12 22a8 8 0 0 0 8-8c0-4-8-12-8-12S4 10 4 14a8 8 0 0 0 8 8Z',
+  check: 'm5 12 4 4L19 6',
+  heart: 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z',
+  book: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z',
+  tag: 'M20.6 13.4 11 3.8A2 2 0 0 0 9.6 3H4a1 1 0 0 0-1 1v5.6a2 2 0 0 0 .6 1.4l9.6 9.6a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.6ZM7.5 7.5h.01',
+  shield: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11ZM9 12l2 2 4-4',
+  trophy: 'M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4',
+  settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.7 2.9-.2-.1a1.7 1.7 0 0 0-1.8.1l-.2.1h-3.4l-.1-.2a1.7 1.7 0 0 0-1.5-1l-.2-.1-2.9 1.7-.1-.2a1.7 1.7 0 0 0-.5-1.8l-.1-.2v-3.4l.2-.1a1.7 1.7 0 0 0 1-1.5l.1-.2-1.7-2.9.2-.1a1.7 1.7 0 0 0 1.8-.5l.2-.1h3.4l.1.2a1.7 1.7 0 0 0 1.5 1l.2.1 2.9-1.7.1.2a1.7 1.7 0 0 0 .5 1.8l.1.2v3.4Z',
+}
+
+function PortalIcon({ name, className = '' }) {
+  return (
+    <svg aria-hidden="true" className={className} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" viewBox="0 0 24 24">
+      <path d={PORTAL_ICONS[name] || PORTAL_ICONS.home} />
+    </svg>
+  )
+}
+
+const DASHBOARD_FEATURES = [
+  { title: 'দাতা ব্যবস্থাপনা', description: 'নিবন্ধিত সদস্যদের পরিচালনা করুন', icon: 'users', section: 'users' },
+  { title: 'নিবন্ধিত অ্যাকাউন্ট', description: 'সংস্থার অ্যাকাউন্ট দেখুন', icon: 'user', section: 'accounts' },
+  { title: 'রক্তদাতা', description: 'দাতা তালিকা দেখুন', icon: 'drop', section: 'donors' },
+  { title: 'রক্তের আবেদন', description: 'আবেদন পর্যালোচনা ও হালনাগাদ করুন', icon: 'heart', section: 'bloodRequests' },
+  { title: 'রক্তের আবেদনের অনুমোদন', description: 'আবেদন অনুমোদন বা প্রত্যাখ্যান করুন', icon: 'check', section: 'bloodRequests' },
+  { title: 'রক্তদাতার অভিজ্ঞতা', description: 'প্রকাশিত অভিজ্ঞতা দেখুন', icon: 'book', section: 'stories' },
+  { title: 'অভিজ্ঞতা অনুমোদন', description: 'অপেক্ষমাণ জমা পর্যালোচনা করুন', icon: 'shield', section: 'approval' },
+  { title: 'ব্লগ ব্যবস্থাপনা', description: 'ব্লগ তৈরি ও সম্পাদনা করুন', icon: 'book', section: 'blogs' },
+  { title: 'ব্লগ বিভাগ ব্যবস্থাপনা', description: 'ব্লগ বিভাগ পরিচালনা করুন', icon: 'tag', section: 'blogCategories' },
+  { title: 'অ্যাডমিন ব্যবস্থাপনা', description: 'অ্যাডমিন অ্যাকাউন্ট পরিচালনা করুন', icon: 'users', section: 'admins', superAdminOnly: true },
+  { title: 'সক্রিয় অ্যাডমিন', description: 'সক্রিয় অ্যাডমিন অ্যাকাউন্ট দেখুন', icon: 'shield', section: 'activeAdmins', superAdminOnly: true },
+  { title: 'লিডারবোর্ড ব্যবস্থাপনা', description: 'সর্বসাধারণের দাতা লিডারবোর্ড দেখুন', icon: 'trophy', section: 'leaderboard' },
+  { title: 'ওয়েবসাইট সেটিংস', description: 'সাইটের সেটিংস এখানে নেই', icon: 'settings', section: 'settings' },
+]
 
 function AdminDashboardPage() {
-  const { user } = useAuth()
-  const { t } = useLanguage()
+  const { user, logout } = useAuth()
+  const { language, t, toggleLanguage } = useLanguage()
+  const navigate = useNavigate()
   const isSuperAdmin = user?.role === 'super_admin'
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [dashboard, setDashboard] = useState(EMPTY_DASHBOARD)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -109,7 +150,7 @@ function AdminDashboardPage() {
   }, [bloodRequestPage, bloodRequestStatus, refreshVersion, selectedStat, t])
 
   useEffect(() => {
-    if (!selectedStat || ['approval', 'bloodRequests'].includes(selectedStat)) return undefined
+    if (!selectedStat || ['approval', 'bloodRequests', 'blogs', 'blogCategories', 'settings', 'leaderboard', 'admins'].includes(selectedStat)) return undefined
     let active = true
     const requestKey = `${selectedStat}:${detailRequestPage}:${detailsRefresh}:${refreshVersion}`
 
@@ -174,6 +215,39 @@ function AdminDashboardPage() {
     loadDetails()
     return () => { active = false }
   }, [detailRequestPage, detailsRefresh, isSuperAdmin, refreshVersion, selectedStat, user])
+
+  useEffect(() => {
+    if (selectedStat === 'blogs' || selectedStat === 'blogCategories') {
+      const targetId = selectedStat === 'blogCategories' ? 'admin-blog-categories' : 'blog-management-form'
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [selectedStat])
+
+  function openSection(section) {
+    setSelectedStat(section)
+    setViewedRecordId('')
+    setViewedExperienceId('')
+    setViewedBloodRequestId('')
+    setDetailsPage(1)
+    setMobileSidebarOpen(false)
+    if (section === 'approval') setPendingPage(1)
+    if (section === 'bloodRequests') {
+      setBloodRequestStatus('pending')
+      setBloodRequestPage(1)
+      setBloodRequestLoading(true)
+      setBloodRequestError('')
+    }
+    setDetailsRefresh((value) => value + 1)
+  }
+
+  async function handleLogout() {
+    try {
+      await logout()
+      navigate('/', { replace: true, state: { notice: t('আপনি সফলভাবে লগ আউট করেছেন।') } })
+    } catch (requestError) {
+      setError(requestError.message || t('লগ আউট করা যায়নি।'))
+    }
+  }
 
   function refreshDashboard() {
     setError('')
@@ -347,12 +421,12 @@ function AdminDashboardPage() {
   const detailRows = currentDetails ? details.rows : []
   const detailPagination = currentDetails ? details.pagination : null
   const detailTitles = {
-    accounts: 'Registered accounts',
-    users: 'Users',
-    donors: 'Public donors',
-    stories: 'Public stories',
-    admins: 'Admins',
-    activeAdmins: 'Active admins',
+    accounts: 'নিবন্ধিত অ্যাকাউন্ট',
+    users: 'ব্যবহারকারী',
+    donors: 'সর্বসাধারণের দাতা',
+    stories: 'সর্বসাধারণের অভিজ্ঞতা',
+    admins: 'অ্যাডমিন',
+    activeAdmins: 'সক্রিয় অ্যাডমিন',
     approval: t('রক্তদাতার অনুভূতি অনুমোদন'),
     bloodRequests: t('রক্তের আবেদন ব্যবস্থাপনা'),
   }
@@ -386,69 +460,160 @@ function AdminDashboardPage() {
           : '—'
 
   return (
-    <main className="admin-dashboard">
-      <header className="admin-dashboard-heading">
-        <div>
-          <span className="admin-eyebrow">{isSuperAdmin ? 'Super Admin' : 'Admin'} workspace</span>
-          <h1>Admin Dashboard</h1>
-          <p>Signed in as {user?.fullName || user?.email}.</p>
-        </div>
-        <button className="admin-secondary-button" disabled={loading} onClick={refreshDashboard} type="button">
-          Refresh data
-        </button>
-      </header>
-
-      {error && <p className="admin-feedback is-error" role="alert">{error}</p>}
-      {notice && <p className="admin-feedback is-success" role="status">{notice}</p>}
-      {loading && <p className="admin-feedback" role="status">Loading dashboard data…</p>}
-
-      {overview && (
-        <section aria-label="Overview statistics" className="admin-stat-grid">
-          {statistics.map(({ key, label, count }) => (
+    <div className={`admin-portal${sidebarCollapsed ? ' is-sidebar-collapsed' : ''}${mobileSidebarOpen ? ' is-mobile-sidebar-open' : ''}`}>
+      <button aria-label={t('নেভিগেশন বন্ধ করুন')} className="admin-sidebar-scrim" onClick={() => setMobileSidebarOpen(false)} type="button" />
+      <aside aria-label={t('অ্যাডমিন সাইডবার')} className="admin-sidebar">
+        <Link aria-label={t('আহ্বানের হোম পেজ')} className="admin-sidebar-brand" onClick={() => openSection('')} to="/">
+          <img alt="" height="48" src="/images/ahoban-logo.png" width="48" />
+          <span><strong>আহ্বান</strong><small>রক্তদান সংস্থা</small></span>
+        </Link>
+        <div className="admin-sidebar-caption">{t('অ্যাডমিন কর্মক্ষেত্র')}</div>
+        <nav aria-label={t('অ্যাডমিন নেভিগেশন')} className="admin-sidebar-nav">
+          <button aria-current={!selectedStat ? 'page' : undefined} className={!selectedStat ? 'is-active' : ''} onClick={() => openSection('')} type="button">
+            <PortalIcon name="home" /><span>{t('ড্যাশবোর্ড')}</span>
+          </button>
+          {DASHBOARD_FEATURES.filter(({ section, superAdminOnly }, index, features) => (
+            (!superAdminOnly || isSuperAdmin) && features.findIndex((feature) => feature.section === section) === index
+          )).map(({ icon, section, title }) => (
             <button
-              aria-pressed={selectedStat === key}
-              className={`admin-stat-card${selectedStat === key ? ' is-selected' : ''}`}
-              key={key}
-              onClick={() => {
-                setSelectedStat(key)
-                setViewedRecordId('')
-                setViewedExperienceId('')
-                setViewedBloodRequestId('')
-                setDetailsPage(1)
-                if (key === 'approval') setPendingPage(1)
-                if (key === 'bloodRequests') {
-                  setBloodRequestStatus('pending')
-                  setBloodRequestPage(1)
-                  setBloodRequestLoading(true)
-                  setBloodRequestError('')
-                }
-                setDetailsRefresh((value) => value + 1)
-              }}
+              aria-current={selectedStat === section ? 'page' : undefined}
+              className={selectedStat === section ? 'is-active' : ''}
+              key={title}
+              onClick={() => openSection(section)}
               type="button"
             >
-              <span>{label}</span>
-              <strong>{count}</strong>
+              <PortalIcon name={icon} /><span>{t(title)}</span>
+              {section === 'approval' && dashboard.pendingExperiences.length > 0 && <span className="admin-sidebar-badge">{dashboard.pendingPagination?.total ?? dashboard.pendingExperiences.length}</span>}
             </button>
           ))}
-        </section>
-      )}
+        </nav>
+        <div className="admin-sidebar-bottom">
+          <span className="admin-sidebar-avatar">{(user?.fullName || user?.email || 'A').trim().charAt(0).toUpperCase()}</span>
+          <span className="admin-sidebar-user"><strong>{user?.fullName || user?.email}</strong><small>{isSuperAdmin ? t('সুপার অ্যাডমিন') : t('অ্যাডমিন')}</small></span>
+        </div>
+      </aside>
 
-      {selectedStat && (
+      <div className="admin-portal-main">
+        <header className="admin-portal-topbar">
+          <button
+            aria-label={t('নেভিগেশন টগল করুন')}
+            className="admin-menu-toggle"
+            onClick={() => {
+              if (window.matchMedia('(max-width: 760px)').matches) setMobileSidebarOpen((open) => !open)
+              else setSidebarCollapsed((collapsed) => !collapsed)
+            }}
+            type="button"
+          >
+            <span /><span /><span />
+          </button>
+          <div className="admin-topbar-spacer" />
+          <button
+            aria-label={language === 'bn' ? 'Switch language to English' : 'ভাষা বাংলায় পরিবর্তন করুন'}
+            className="admin-language-toggle"
+            onClick={toggleLanguage}
+            type="button"
+          >
+            {language === 'bn' ? 'English' : 'বাংলা'}
+          </button>
+          <button aria-label={t('অভিজ্ঞতা অনুমোদন খুলুন')} className="admin-notification-button" onClick={() => openSection('approval')} type="button">
+            <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+            {(dashboard.pendingPagination?.total ?? 0) > 0 && <span>{dashboard.pendingPagination.total}</span>}
+          </button>
+          <details className="admin-profile-menu">
+            <summary>
+              <span className="admin-profile-avatar">{(user?.fullName || user?.email || 'A').trim().charAt(0).toUpperCase()}</span>
+              <span className="admin-profile-copy"><strong>{user?.fullName || user?.email}</strong><small>{isSuperAdmin ? t('সুপার অ্যাডমিন') : t('অ্যাডমিন')}</small></span>
+              <span aria-hidden="true" className="admin-profile-chevron">⌄</span>
+            </summary>
+            <div className="admin-profile-dropdown">
+              <Link to="/profile">
+                <PortalIcon name="user" />{t('প্রোফাইল')}
+              </Link>
+              <button onClick={handleLogout} type="button">
+                <PortalIcon name="settings" />{t('লগ আউট')}
+              </button>
+            </div>
+          </details>
+        </header>
+
+      <main className="admin-dashboard">
+        {error && <p className="admin-feedback is-error" role="alert">{error}</p>}
+        {notice && <p className="admin-feedback is-success" role="status">{notice}</p>}
+        {loading && <p className="admin-feedback" role="status">{t('লোড হচ্ছে…')}</p>}
+
+        {!selectedStat ? (
+          <>
+            <header className="admin-dashboard-heading">
+              <div>
+                <span className="admin-eyebrow">{t('অ্যাডমিন কর্মক্ষেত্র')}</span>
+                <h1>{t('ফিরে আসায় স্বাগতম, {name}!', { name: user?.fullName?.split(/\s+/)[0] || t('অ্যাডমিন') })}</h1>
+                <p>{t('সংস্থা, কমিউনিটি ও রক্তদানের কার্যক্রম এক জায়গা থেকে পরিচালনা করুন।')}</p>
+              </div>
+              <button className="admin-secondary-button" disabled={loading} onClick={refreshDashboard} type="button">
+                <span aria-hidden="true">↻</span> {t('তথ্য হালনাগাদ করুন')}
+              </button>
+            </header>
+            <section aria-label={t('পরিসংখ্যানের সারাংশ')} className="admin-overview-strip">
+              {[
+                ['নিবন্ধিত অ্যাকাউন্ট', overview?.totalAccounts ?? '—', 'users'],
+                ['রক্তদাতা', overview?.totalDonors ?? '—', 'drop'],
+                ['রক্তের আবেদন', dashboard.bloodRequestCounts.pending, 'heart'],
+                ['অপেক্ষমাণ অভিজ্ঞতা', dashboard.pendingPagination?.total ?? 0, 'shield'],
+              ].map(([label, count, icon]) => (
+                <div className="admin-overview-metric" key={label}>
+                  <span className="admin-overview-icon"><PortalIcon name={icon} /></span>
+                  <span><small>{t(label)}</small><strong>{count}</strong></span>
+                </div>
+              ))}
+            </section>
+            <section aria-labelledby="admin-features-title" className="admin-feature-section">
+              <div className="admin-feature-heading">
+                <div><span className="admin-eyebrow">{t('দ্রুত প্রবেশ')}</span><h2 id="admin-features-title">{t('ব্যবস্থাপনা')}</h2></div>
+                <button className="admin-secondary-button" disabled={loading} onClick={refreshDashboard} type="button">{t('ড্যাশবোর্ড হালনাগাদ')}</button>
+              </div>
+              <div className="admin-feature-grid">
+                {DASHBOARD_FEATURES.filter(({ superAdminOnly }) => !superAdminOnly || isSuperAdmin).map(({ description, icon, section, title }) => {
+                  const featureCount = {
+                    users: overview?.totalUsers,
+                    accounts: overview?.totalAccounts,
+                    donors: overview?.totalDonors,
+                    bloodRequests: dashboard.bloodRequestCounts.pending,
+                    stories: overview?.totalExperiences,
+                    approval: dashboard.pendingPagination?.total ?? 0,
+                    admins: overview?.totalAdmins,
+                    activeAdmins: overview?.activeAdmins,
+                  }[section]
+                  return (
+                  <button className="admin-feature-card" key={title} onClick={() => openSection(section)} type="button">
+                    <span className="admin-feature-icon"><PortalIcon name={icon} /></span>
+                    {featureCount !== undefined && <span className="admin-feature-count">{featureCount}</span>}
+                    <strong>{t(title)}</strong>
+                    <small>{t(description)}</small>
+                    <span aria-hidden="true" className="admin-feature-arrow">↗</span>
+                  </button>
+                  )
+                })}
+              </div>
+            </section>
+          </>
+        ) : null}
+
+      {selectedStat && !['blogs', 'blogCategories', 'settings', 'leaderboard', 'admins'].includes(selectedStat) && (
         <section aria-labelledby="admin-stat-details-title" className="admin-panel admin-stat-details">
           <div className="admin-panel-heading">
             <div>
               <span className="admin-eyebrow">
                 {selectedStat === 'bloodRequests'
                   ? `${dashboard.bloodRequestCounts[bloodRequestStatus] ?? 0} ${t('আবেদন')}`
-                  : `${detailCount} records`}
+                  : t('{count}টি রেকর্ড', { count: detailCount })}
               </span>
-              <h2 id="admin-stat-details-title">{detailTitles[selectedStat]}</h2>
+              <h2 id="admin-stat-details-title">{t(detailTitles[selectedStat])}</h2>
             </div>
             <div className="admin-stat-details-actions">
-              {selectedStat === 'donors' && <Link to="/donors">Open donor directory</Link>}
-              {selectedStat === 'stories' && <Link to="/donor-experiences">Open stories</Link>}
+              {selectedStat === 'donors' && <Link to="/donors">{t('দাতাদের ডিরেক্টরি খুলুন')}</Link>}
+              {selectedStat === 'stories' && <Link to="/donor-experiences">{t('অভিজ্ঞতার তালিকা খুলুন')}</Link>}
               <button
-                aria-label="Close details"
+                aria-label={t('বিস্তারিত বন্ধ করুন')}
                 className="admin-stat-details-close"
                 onClick={() => {
                   setSelectedStat('')
@@ -511,15 +676,15 @@ function AdminDashboardPage() {
             <div className="admin-stat-details-error">
               <p className="admin-feedback is-error" role="alert">{details.error}</p>
               <button className="admin-secondary-button" onClick={() => setDetailsRefresh((value) => value + 1)} type="button">
-                Try again
+                {t('আবার চেষ্টা করুন')}
               </button>
             </div>
           )}
           {!['approval', 'bloodRequests'].includes(selectedStat) && details.requestKey !== detailRequestKey && (
-            <p className="admin-feedback" role="status">Loading details…</p>
+            <p className="admin-feedback" role="status">{t('ডিটেইল লোড হচ্ছে…')}</p>
           )}
           {!['approval', 'bloodRequests'].includes(selectedStat) && detailListIsRoleRestricted && (
-            <p className="admin-feedback">Some account details are limited by your role permissions.</p>
+            <p className="admin-feedback">{t('কিছু অ্যাকাউন্টের তথ্য আপনার ভূমিকার অনুমতিতে সীমিত।')}</p>
           )}
           {selectedStat === 'approval' && viewedExperience ? (
             <article className="admin-approval-detail">
@@ -540,9 +705,9 @@ function AdminDashboardPage() {
                 ))}
               </div>
               <dl className="admin-approval-detail-meta">
-                <div><dt>{t('রক্তদানের তারিখ')}</dt><dd>{formatDate(viewedExperience.donationDate)}</dd></div>
+                <div><dt>{t('রক্তদানের তারিখ')}</dt><dd>{formatDate(viewedExperience.donationDate, language)}</dd></div>
                 <div><dt>{t('মোট রক্তদানের সংখ্যা')}</dt><dd>{viewedExperience.donationCount ?? '—'}</dd></div>
-                <div><dt>{t('জমা দেওয়ার তারিখ')}</dt><dd>{formatDateTime(viewedExperience.createdAt)}</dd></div>
+                <div><dt>{t('জমা দেওয়ার তারিখ')}</dt><dd>{formatDateTime(viewedExperience.createdAt, language)}</dd></div>
                 <div><dt>{t('অবস্থান')}</dt><dd>{[viewedExperience.location, viewedExperience.upazila, viewedExperience.district, viewedExperience.division].filter(Boolean).join(', ') || '—'}</dd></div>
               </dl>
               <div className="admin-approval-actions">
@@ -579,8 +744,8 @@ function AdminDashboardPage() {
                 <div><dt>{t('হাসপাতালের নাম')}</dt><dd>{viewedBloodRequest.hospitalName}</dd></div>
                 <div><dt>{t('হাসপাতালের ঠিকানা')}</dt><dd>{viewedBloodRequest.hospitalLocation}</dd></div>
                 <div><dt>{t('প্রয়োজনীয় রক্ত')}</dt><dd>{viewedBloodRequest.units} {t('ব্যাগ')}</dd></div>
-                <div><dt>{t('রক্ত প্রয়োজনের তারিখ ও সময়')}</dt><dd>{formatDateTime(viewedBloodRequest.requiredAt)}</dd></div>
-                <div><dt>{t('আবেদনের তারিখ')}</dt><dd>{formatDateTime(viewedBloodRequest.createdAt)}</dd></div>
+                <div><dt>{t('রক্ত প্রয়োজনের তারিখ ও সময়')}</dt><dd>{formatDateTime(viewedBloodRequest.requiredAt, language)}</dd></div>
+                <div><dt>{t('আবেদনের তারিখ')}</dt><dd>{formatDateTime(viewedBloodRequest.createdAt, language)}</dd></div>
                 <div><dt>{t('আবেদনের অবস্থা')}</dt><dd>{t({
                   active: 'সক্রিয়',
                   fulfilled: 'রক্ত পাওয়া গেছে',
@@ -612,7 +777,7 @@ function AdminDashboardPage() {
                     <span className="admin-blood-request-hospital" title={`${request.hospitalName} · ${request.hospitalLocation}`}>{request.hospitalName} · {request.hospitalLocation}</span>
                     <span className="admin-blood-request-contact" title={`${request.requesterName} · ${request.phone}`}>{request.requesterName} · {request.phone}</span>
                     <span className="admin-blood-request-units">{request.units} {t('ব্যাগ')}</span>
-                    <span className="admin-blood-request-date">{formatDateTime(request.requiredAt)}</span>
+                    <span className="admin-blood-request-date">{formatDateTime(request.requiredAt, language)}</span>
                     <div className="admin-blood-request-row-actions">
                       <button className="admin-approval-view" onClick={() => setViewedBloodRequestId(request.id)} type="button">{t('বিস্তারিত')}</button>
                       {bloodRequestStatus === 'pending' && (
@@ -678,7 +843,7 @@ function AdminDashboardPage() {
           ) : selectedStat === 'approval' && !loading && !error ? (
             <p className="admin-empty">{t('অনুমোদনের জন্য কোনো অনুভূতি অপেক্ষায় নেই।')}</p>
           ) : !['approval', 'bloodRequests'].includes(selectedStat) && viewedRecord ? (
-            <section aria-label={`${viewedRecord.fullName || viewedRecord.donorName} details`} className="admin-user-detail-card">
+            <section aria-label={t('{name} এর বিস্তারিত', { name: viewedRecord.fullName || viewedRecord.donorName })} className="admin-user-detail-card">
               <header className="admin-user-detail-header">
                 {viewedRecord.profilePhotoUrl
                   ? <img alt="" className="admin-user-avatar is-large" src={viewedRecord.profilePhotoUrl} />
@@ -687,14 +852,14 @@ function AdminDashboardPage() {
                   <h3>{viewedRecord.fullName || viewedRecord.donorName}</h3>
                   <span>{viewedRecord.userId || viewedRecord.publicUserId || '—'}</span>
                   <div className="admin-user-detail-badges">
-                    <span>{viewedRecord.role === 'user' ? 'Registered user' : viewedRecord.role === 'super_admin' ? 'Super Admin' : viewedRecord.role === 'admin' ? 'Admin' : detailTitles[selectedStat]}</span>
+                    <span>{viewedRecord.role === 'user' ? t('নিবন্ধিত ব্যবহারকারী') : viewedRecord.role === 'super_admin' ? t('সুপার অ্যাডমিন') : viewedRecord.role === 'admin' ? t('অ্যাডমিন') : t(detailTitles[selectedStat])}</span>
                     <span className={viewedRecord.isActive === false ? 'is-inactive' : viewedRecord.isActive === true ? 'is-active' : ''}>
-                      {viewedRecordStatus}
+                      {t(viewedRecordStatus)}
                     </span>
                   </div>
                 </div>
                 <button
-                  aria-label="Close user details"
+                  aria-label={t('বিস্তারিত বন্ধ করুন')}
                   className="admin-stat-details-close"
                   onClick={() => setViewedRecordId('')}
                   type="button"
@@ -707,28 +872,28 @@ function AdminDashboardPage() {
                   {viewedRecord.profilePhotoUrl
                     ? <img alt="" className="admin-user-avatar" src={viewedRecord.profilePhotoUrl} />
                     : <span aria-hidden="true" className="admin-user-avatar is-fallback">{(viewedRecord.fullName || viewedRecord.donorName || '?').trim().charAt(0)}</span>}
-                  <span>Profile image</span>
+                  <span>{t('প্রোফাইল ছবি')}</span>
                 </div>
                 {[
-                  ['Email', viewedRecord.email],
-                  ['Phone', viewedRecord.phone],
-                  ['Blood group', viewedRecord.bloodGroup],
-                  ['Location', [viewedRecord.location, viewedRecord.upazila, viewedRecord.district, viewedRecord.division].filter(Boolean).join(', ')],
-                  ['Joined on', formatDate(viewedRecord.createdAt)],
-                  ['Account status', viewedRecordStatus],
-                  ['Total donations', viewedRecord.previousBloodDonations ?? viewedRecord.donationCount],
-                  ['Member since', formatDate(viewedRecord.createdAt)],
-                  ['Last donation', formatDate(viewedRecord.lastDonationDate || viewedRecord.donationDate)],
+                  ['ইমেইল', viewedRecord.email],
+                  ['ফোন', viewedRecord.phone],
+                  ['রক্তের গ্রুপ', viewedRecord.bloodGroup],
+                  ['অবস্থান', [viewedRecord.location, viewedRecord.upazila, viewedRecord.district, viewedRecord.division].filter(Boolean).join(', ')],
+                  ['নিবন্ধনের তারিখ', formatDate(viewedRecord.createdAt, language)],
+                  ['অ্যাকাউন্টের অবস্থা', t(viewedRecordStatus)],
+                  ['মোট রক্তদান', viewedRecord.previousBloodDonations ?? viewedRecord.donationCount],
+                  ['সদস্য হওয়ার তারিখ', formatDate(viewedRecord.createdAt, language)],
+                  ['সর্বশেষ রক্তদান', formatDate(viewedRecord.lastDonationDate || viewedRecord.donationDate, language)],
                 ].map(([label, value]) => (
                   <div className="admin-user-detail-item" key={label}>
-                    <span>{label}</span>
+                    <span>{t(label)}</span>
                     <strong>{value || '—'}</strong>
                   </div>
                 ))}
               </div>
               {viewedRecord.message && <p className="admin-user-detail-story">{viewedRecord.message}</p>}
               <button className="admin-secondary-button admin-user-back-button" onClick={() => setViewedRecordId('')} type="button">
-                Back to {selectedStat === 'users' ? 'Users' : detailTitles[selectedStat]}
+                {t('ফিরে যান')} · {t(detailTitles[selectedStat])}
               </button>
             </section>
           ) : !['approval', 'bloodRequests'].includes(selectedStat) && currentDetails && !details.error && detailRows.length > 0 ? (
@@ -745,7 +910,7 @@ function AdminDashboardPage() {
                       <strong className="admin-stat-record-name" title={name}>{name}</strong>
                       <span className="admin-stat-record-id" title={accountId}>{accountId}</span>
                       <span className="admin-stat-record-email" title={row.email || ''}>{row.email || '—'}</span>
-                      <button className="admin-stat-record-view" onClick={() => setViewedRecordId(row.id)} type="button">View</button>
+                      <button className="admin-stat-record-view" onClick={() => setViewedRecordId(row.id)} type="button">{t('দেখুন')}</button>
                     </li>
                   )
                 })}
@@ -758,59 +923,59 @@ function AdminDashboardPage() {
                     onClick={() => setDetailsPage((page) => page - 1)}
                     type="button"
                   >
-                    Previous
+                    {t('আগের পৃষ্ঠা')}
                   </button>
-                  <span>Page {detailsPage} of {detailPages} · {detailPageCount} records</span>
+                  <span>{t('পৃষ্ঠা {page} / {pages} · {count}টি রেকর্ড', { page: detailsPage, pages: detailPages, count: detailPageCount })}</span>
                   <button
                     className="admin-secondary-button"
                     disabled={detailsPage >= detailPages || details.requestKey !== detailRequestKey}
                     onClick={() => setDetailsPage((page) => page + 1)}
                     type="button"
                   >
-                    Next
+                    {t('পরের পৃষ্ঠা')}
                   </button>
                 </div>
               )}
             </>
           ) : null}
           {!['approval', 'bloodRequests'].includes(selectedStat) && currentDetails && !details.error && detailRows.length === 0 && (
-            <p className="admin-empty">No records found for this category.</p>
+            <p className="admin-empty">{t('এই বিভাগে কোনো রেকর্ড পাওয়া যায়নি।')}</p>
           )}
         </section>
       )}
 
-      <BlogManagement />
+      {(selectedStat === 'blogs' || selectedStat === 'blogCategories') && <BlogManagement />}
 
-      {isSuperAdmin && (
+      {isSuperAdmin && selectedStat === 'admins' && (
         <section aria-labelledby="admin-management-title" className="admin-panel admin-management">
           <div className="admin-panel-heading">
             <div>
-              <span className="admin-eyebrow">Super Admin only</span>
-              <h2 id="admin-management-title">Admin management</h2>
+              <span className="admin-eyebrow">{t('শুধু সুপার অ্যাডমিন')}</span>
+              <h2 id="admin-management-title">{t('অ্যাডমিন ব্যবস্থাপনা')}</h2>
             </div>
-            <span>{dashboard.admins.length} admins</span>
+            <span>{dashboard.admins.length} {t('টি অ্যাডমিন')}</span>
           </div>
 
           <form className="admin-create-form" onSubmit={createAdmin}>
-            <h3>Create an admin account</h3>
+            <h3>{t('অ্যাডমিন অ্যাকাউন্ট তৈরি করুন')}</h3>
             <label>
-              Full name
+              {t('পূর্ণ নাম')}
               <input autoComplete="name" maxLength="100" onChange={(event) => setNewAdmin((value) => ({ ...value, fullName: event.target.value }))} required value={newAdmin.fullName} />
             </label>
             <label>
-              Email
+              {t('ইমেইল')}
               <input autoComplete="email" onChange={(event) => setNewAdmin((value) => ({ ...value, email: event.target.value }))} required type="email" value={newAdmin.email} />
             </label>
             <label>
-              Phone
+              {t('ফোন')}
               <input autoComplete="tel" maxLength="16" onChange={(event) => setNewAdmin((value) => ({ ...value, phone: event.target.value }))} required value={newAdmin.phone} />
             </label>
             <label>
-              Temporary password
+              {t('অস্থায়ী পাসওয়ার্ড')}
               <input autoComplete="new-password" minLength="12" onChange={(event) => setNewAdmin((value) => ({ ...value, password: event.target.value }))} required type="password" value={newAdmin.password} />
             </label>
             <button className="admin-primary-button" disabled={saving} type="submit">
-              {saving ? 'Saving…' : 'Create admin'}
+              {saving ? t('সংরক্ষণ হচ্ছে…') : t('অ্যাডমিন তৈরি করুন')}
             </button>
           </form>
 
@@ -820,45 +985,60 @@ function AdminDashboardPage() {
                 {editingId === admin.id ? (
                   <form className="admin-account-edit" onSubmit={updateAdmin}>
                     <label>
-                      Full name
+                      {t('পূর্ণ নাম')}
                       <input maxLength="100" onChange={(event) => setEditForm((value) => ({ ...value, fullName: event.target.value }))} required value={editForm.fullName} />
                     </label>
                     <label>
-                      Phone
+                      {t('ফোন')}
                       <input maxLength="16" onChange={(event) => setEditForm((value) => ({ ...value, phone: event.target.value }))} required value={editForm.phone} />
                     </label>
                     <label>
-                      Role
+                      {t('ভূমিকা')}
                       <select onChange={(event) => setEditForm((value) => ({ ...value, role: event.target.value }))} value={editForm.role}>
-                        <option value="admin">Admin</option>
-                        <option value="user">User</option>
+                        <option value="admin">{t('অ্যাডমিন')}</option>
+                        <option value="user">{t('ব্যবহারকারী')}</option>
                       </select>
                     </label>
                     <div className="admin-row-actions">
-                      <button className="admin-primary-button" disabled={saving} type="submit">Save</button>
-                      <button className="admin-secondary-button" onClick={() => setEditingId('')} type="button">Cancel</button>
+                      <button className="admin-primary-button" disabled={saving} type="submit">{t('সংরক্ষণ করুন')}</button>
+                      <button className="admin-secondary-button" onClick={() => setEditingId('')} type="button">{t('বাতিল করুন')}</button>
                     </div>
                   </form>
                 ) : (
                   <>
                     <span><strong>{admin.fullName}</strong><small>{admin.email} · {admin.userId}</small></span>
-                    <span className={`admin-status${admin.isActive ? ' is-active' : ''}`}>{admin.isActive ? 'Active' : 'Inactive'}</span>
+                    <span className={`admin-status${admin.isActive ? ' is-active' : ''}`}>{t(admin.isActive ? 'সক্রিয়' : 'নিষ্ক্রিয়')}</span>
                     <div className="admin-row-actions">
-                      <button className="admin-secondary-button" disabled={saving} onClick={() => beginEdit(admin)} type="button">Edit</button>
+                      <button className="admin-secondary-button" disabled={saving} onClick={() => beginEdit(admin)} type="button">{t('সম্পাদনা করুন')}</button>
                       <button className="admin-secondary-button" disabled={saving} onClick={() => toggleAdmin(admin)} type="button">
                         {admin.isActive ? 'Deactivate' : 'Activate'}
                       </button>
-                      <button className="admin-danger-button" disabled={saving} onClick={() => deleteAdmin(admin)} type="button">Delete</button>
+                      <button className="admin-danger-button" disabled={saving} onClick={() => deleteAdmin(admin)} type="button">{t('মুছে ফেলুন')}</button>
                     </div>
                   </>
                 )}
               </li>
             ))}
           </ul>
-          {!dashboard.admins.length && !loading && <p className="admin-empty">No admin accounts yet.</p>}
+          {!dashboard.admins.length && !loading && <p className="admin-empty">{t('এখনও কোনো অ্যাডমিন অ্যাকাউন্ট নেই।')}</p>}
         </section>
       )}
-    </main>
+      {selectedStat === 'leaderboard' && (
+        <section className="admin-panel admin-info-panel">
+          <div className="admin-panel-heading"><div><span className="admin-eyebrow">{t('সর্বসাধারণের ডিরেক্টরি')}</span><h2>{t('লিডারবোর্ড')}</h2></div></div>
+          <p>{t('বিদ্যমান লিডারবোর্ডটি সর্বসাধারণের দাতা তালিকা হিসেবে পাওয়া যাবে।')}</p>
+          <Link className="admin-primary-button" to="/top-donors">{t('দাতা লিডারবোর্ড খুলুন')}</Link>
+        </section>
+      )}
+      {selectedStat === 'settings' && (
+        <section className="admin-panel admin-info-panel">
+          <div className="admin-panel-heading"><div><span className="admin-eyebrow">{t('প্রতিষ্ঠান')}</span><h2>{t('ওয়েবসাইট সেটিংস')}</h2></div></div>
+          <p>{t('ওয়েবসাইট সেটিংস বর্তমানে অ্যাডমিন ড্যাশবোর্ডে নেই।')}</p>
+        </section>
+      )}
+      </main>
+      </div>
+    </div>
   )
 }
 

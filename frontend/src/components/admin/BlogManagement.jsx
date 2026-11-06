@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BlogContent from '../blog/BlogContent'
+
+const BlogRichTextEditor = lazy(() => import('./BlogRichTextEditor'))
 import { useAuth } from '../../contexts/useAuth'
 import { useLanguage } from '../../contexts/useLanguage'
 import { translateErrorMessage } from '../../contexts/translationUtils'
@@ -35,13 +37,11 @@ const EMPTY_FORM = {
   status: 'draft',
   publishAt: toLocalDateTime(),
   featured: false,
-  metaTitle: '',
-  metaDescription: '',
 }
 
 function BlogManagement() {
   const { user } = useAuth()
-  const { t } = useLanguage()
+  const { language, t } = useLanguage()
   const [blogs, setBlogs] = useState([])
   const [categories, setCategories] = useState([])
   const [categoryRows, setCategoryRows] = useState([])
@@ -72,7 +72,6 @@ function BlogManagement() {
   const [preview, setPreview] = useState(false)
   const [blogToolsExpanded, setBlogToolsExpanded] = useState(false)
   const [refreshVersion, setRefreshVersion] = useState(0)
-  const editorRef = useRef(null)
   const requestKey = `${page}:${query.search}:${query.category}:${query.status}:${refreshVersion}`
   const loading = loadedKey !== requestKey
 
@@ -140,8 +139,6 @@ function BlogManagement() {
       status: blog.status,
       publishAt: toLocalDateTime(blog.publishAt),
       featured: blog.featured,
-      metaTitle: blog.metaTitle || '',
-      metaDescription: blog.metaDescription || '',
     })
     setCoverFile(null)
     setCoverPreview(blog.coverImage)
@@ -162,33 +159,15 @@ function BlogManagement() {
     if (name === 'slug') setSlugTouched(true)
   }
 
-  function insertMarkdown(prefix, suffix = prefix, placeholder = t('লেখা')) {
-    const textarea = editorRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selected = form.content.slice(start, end) || placeholder
-    const replacement = `${prefix}${selected}${suffix}`
-    const content = `${form.content.slice(0, start)}${replacement}${form.content.slice(end)}`
-    setForm((current) => ({ ...current, content }))
-    requestAnimationFrame(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length)
-    })
-  }
-
-  function insertLink() {
-    const url = window.prompt(t('লিংকের URL লিখুন'), 'https://')
-    if (url) insertMarkdown('[', `](${url})`)
-  }
-
-  function insertImage() {
-    const url = window.prompt(t('ছবির URL লিখুন'), 'https://')
-    if (url) insertMarkdown('![ছবির বর্ণনা](', `)`, url)
-  }
-
   async function saveBlog(event) {
     event.preventDefault()
+    const textContent = form.content.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;/gi, ' ').trim()
+    if (form.content.length > 100000 || (!textContent && !/<(?:img|iframe)\b/i.test(form.content))) {
+      setError(t(form.content.length > 100000
+        ? 'ব্লগের লেখা ১০০,০০০ অক্ষরের মধ্যে রাখুন।'
+        : 'ব্লগের লেখা যোগ করুন।'))
+      return
+    }
     const selectedStatus = event.nativeEvent.submitter?.value || form.status
     setSaving(true)
     setError('')
@@ -313,7 +292,7 @@ function BlogManagement() {
       {error && <p className="admin-feedback is-error" role="alert">{t(error)}</p>}
       {notice && <p className="admin-feedback is-success" role="status">{t(notice)}</p>}
 
-      <section aria-labelledby="admin-blog-categories-title" className="admin-blog-categories">
+      <section aria-labelledby="admin-blog-categories-title" className="admin-blog-categories" id="admin-blog-categories">
         <h3 id="admin-blog-categories-title">{t('ব্লগ বিভাগ পরিচালনা')}</h3>
         <form className="admin-blog-category-form" onSubmit={saveCategory}>
           <label>
@@ -431,24 +410,18 @@ function BlogManagement() {
         <label>{t('প্রকাশের তারিখ')}<input name="publishAt" onChange={updateForm} required type="datetime-local" value={form.publishAt} /></label>
         <label>{t('প্রকাশের অবস্থা')}<select name="status" onChange={updateForm} value={form.status}><option value="draft">{t('খসড়া')}</option><option value="published">{t('প্রকাশিত')}</option></select></label>
         <label className="admin-blog-checkbox"><input checked={form.featured} name="featured" onChange={updateForm} type="checkbox" />{t('বিশেষ লেখা হিসেবে দেখান')}</label>
-        <label className="admin-blog-form-wide">{t('SEO শিরোনাম')}<input maxLength="180" name="metaTitle" onChange={updateForm} value={form.metaTitle} /></label>
-        <label className="admin-blog-form-wide">{t('SEO বিবরণ')}<textarea maxLength="320" name="metaDescription" onChange={updateForm} rows="2" value={form.metaDescription} /></label>
         <div className="admin-blog-editor admin-blog-form-wide">
           <div className="admin-blog-editor-heading"><strong>{t('ব্লগের লেখা')}</strong><button className="admin-secondary-button" onClick={() => setPreview((value) => !value)} type="button">{preview ? t('সম্পাদনা') : t('প্রিভিউ')}</button></div>
           {!preview ? (
             <>
-              <div aria-label={t('লেখার ফরম্যাটিং')} className="admin-blog-toolbar">
-                <button onClick={() => insertMarkdown('## ', '', t('শিরোনাম'))} type="button">H2</button>
-                <button onClick={() => insertMarkdown('**', '**')} type="button"><strong>B</strong></button>
-                <button onClick={() => insertMarkdown('*', '*')} type="button"><em>I</em></button>
-                <button onClick={() => insertMarkdown('- ', '', t('তালিকার লেখা'))} type="button">• {t('তালিকা')}</button>
-                <button onClick={() => insertMarkdown('1. ', '', t('তালিকার লেখা'))} type="button">1. {t('ক্রমিক তালিকা')}</button>
-                <button onClick={insertLink} type="button">{t('লিংক')}</button>
-                <button onClick={insertImage} type="button">{t('ছবি')}</button>
-                <button onClick={() => insertMarkdown('\n```\n', '\n```\n', 'code')} type="button">{t('কোড')}</button>
-              </div>
-              <textarea aria-label={t('ব্লগের লেখা')} maxLength="100000" minLength="1" name="content" onChange={updateForm} ref={editorRef} required rows="16" value={form.content} />
-              <small>{t('মার্কডাউন সমর্থিত: শিরোনাম, অনুচ্ছেদ, বোল্ড, ইটালিক, তালিকা, লিংক, ছবি ও কোড ব্লক।')}</small>
+              <Suspense fallback={<p className="admin-feedback" role="status">{t('লোড হচ্ছে…')}</p>}>
+                <BlogRichTextEditor
+                  onChange={(content) => setForm((current) => ({ ...current, content }))}
+                  language={language}
+                  t={t}
+                  value={form.content}
+                />
+              </Suspense>
             </>
           ) : <BlogContent content={form.content} />}
         </div>

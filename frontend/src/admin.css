@@ -1239,6 +1239,1084 @@
   }
 }
 
+.admin-portal {
+  --portal-blue: #1769c2;
+  --portal-blue-dark: #0e4b91;
+  --portal-ink: #1d2b3c;
+  --portal-muted: #718096;
+  display: flex;
+  min-height: 100vh;
+  background: #f3f6fb;
+  color: var(--portal-ink);
+  font-family: inherit;
+}
+
+.admin-sidebar {
+  position: fixed;
+  z-index: 20;
+  inset: 0 auto 0 0;
+  display: flex;
+  width: 264px;
+  flex-direction: column;
+  padding: 22px 14px 16px;
+  overflow: hidden auto;
+  background: linear-gradient(165deg, #176dc6 0%, #0e4b91 100%);
+  color: #fff;
+  transition: width 180ms ease, transform 180ms ease;
+}
+
+.admin-sidebar-brand {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 12px;
+  margin: 0 6px 30px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.admin-sidebar-brand img {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 2px solid rgb(255 255 255 / 72%);
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+}
+
+.admin-sidebar-brand > span,
+.admin-sidebar-user,
+.admin-profile-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.admin-sidebar-brand strong {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.admin-sidebar-brand small {
+  color: rgb(255 255 255 / 75%);
+  font-size: 11px;
+}
+
+.admin-sidebar-caption {
+  padding: 0 12px 10px;
+  color: rgb(255 255 255 / 62%);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+
+.admin-sidebar-nav {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-sidebar-nav button {
+  display: flex;
+  min-width: 0;
+  min-height: 43px;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgb(255 255 255 / 82%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.admin-sidebar-nav button:hover,
+.admin-sidebar-nav button.is-active {
+  background: rgb(255 255 255 / 17%);
+  color: #fff;
+}
+
+.admin-sidebar-nav button.is-active {
+  box-shadow: inset 3px 0 #fff;
+}
+
+.admin-sidebar-nav button > svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.admin-sidebar-nav button > span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-sidebar-badge {
+  display: grid;
+  min-width: 21px;
+  height: 21px;
+  place-items: center;
+  margin-left: auto;
+  padding: 0 5px;
+  border-radius: 20px;
+  background: #fff;
+  color: var(--portal-blue-dark);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.admin-sidebar-bottom {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 16px 6px 0;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+
+.admin-sidebar-avatar,
+.admin-profile-avatar {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e6f1ff;
+  color: #135ba7;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.admin-sidebar-user strong,
+.admin-profile-copy strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-sidebar-user small,
+.admin-profile-copy small {
+  color: rgb(255 255 255 / 70%);
+  font-size: 10px;
+}
+
+.admin-portal-main {
+  width: calc(100% - 264px);
+  min-width: 0;
+  min-height: 100vh;
+  margin-left: 264px;
+  transition: width 180ms ease, margin-left 180ms ease;
+}
+
+.admin-portal.is-sidebar-collapsed .admin-sidebar {
+  width: 78px;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.admin-portal.is-sidebar-collapsed .admin-sidebar-brand {
+  justify-content: center;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.admin-portal.is-sidebar-collapsed .admin-sidebar-brand > span,
+.admin-portal.is-sidebar-collapsed .admin-sidebar-caption,
+.admin-portal.is-sidebar-collapsed .admin-sidebar-nav button > span,
+.admin-portal.is-sidebar-collapsed .admin-sidebar-user {
+  display: none;
+}
+
+.admin-portal.is-sidebar-collapsed .admin-sidebar-nav button {
+  justify-content: center;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.admin-portal.is-sidebar-collapsed .admin-sidebar-nav button.is-active {
+  box-shadow: inset 0 -3px #fff;
+}
+
+.admin-portal.is-sidebar-collapsed .admin-sidebar-bottom {
+  justify-content: center;
+}
+
+.admin-portal.is-sidebar-collapsed .admin-portal-main {
+  width: calc(100% - 78px);
+  margin-left: 78px;
+}
+
+.admin-portal-topbar {
+  position: sticky;
+  z-index: 15;
+  top: 0;
+  display: flex;
+  height: 72px;
+  align-items: center;
+  gap: 18px;
+  padding: 0 32px;
+  border-bottom: 1px solid #e6ebf2;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 3px 12px rgb(34 61 91 / 3%);
+  backdrop-filter: blur(12px);
+}
+
+.admin-topbar-spacer {
+  flex: 1;
+}
+
+.admin-menu-toggle,
+.admin-notification-button {
+  position: relative;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-content: center;
+  gap: 5px;
+  border: 1px solid #e3eaf3;
+  border-radius: 11px;
+  background: #fff;
+  color: #47627e;
+  cursor: pointer;
+}
+
+.admin-menu-toggle > span {
+  display: block;
+  width: 17px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.admin-notification-button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.admin-notification-button > span {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 4px;
+  border: 2px solid #fff;
+  border-radius: 20px;
+  background: #e43e50;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.admin-profile-menu {
+  position: relative;
+}
+
+.admin-profile-menu summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.admin-profile-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-profile-menu .admin-profile-avatar {
+  width: 39px;
+  height: 39px;
+  flex-basis: 39px;
+}
+
+.admin-profile-copy strong {
+  max-width: 180px;
+  color: #263b52;
+  font-size: 12px;
+}
+
+.admin-profile-copy small {
+  color: #7e8da0;
+}
+
+.admin-profile-chevron {
+  color: #7e8da0;
+  font-size: 19px;
+}
+
+.admin-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 15px);
+  right: 0;
+  display: grid;
+  width: 180px;
+  gap: 3px;
+  padding: 7px;
+  border: 1px solid #e6ebf2;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 14px 32px rgb(32 54 79 / 15%);
+}
+
+.admin-profile-dropdown a,
+.admin-profile-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #40546b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  text-decoration: none;
+}
+
+.admin-profile-dropdown a:hover,
+.admin-profile-dropdown button:hover {
+  background: #f0f6fd;
+  color: var(--portal-blue-dark);
+}
+
+.admin-profile-dropdown svg {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-dashboard {
+  display: grid;
+  min-height: calc(100vh - 72px);
+  align-content: start;
+  gap: 24px;
+  margin: 0;
+  padding: clamp(24px, 4vw, 46px);
+  background: #f3f6fb;
+  color: var(--portal-ink);
+}
+
+.admin-dashboard-heading {
+  align-items: center;
+  padding: 0;
+}
+
+.admin-dashboard-heading h1 {
+  margin: 8px 0;
+  color: #1c3047;
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -.035em;
+}
+
+.admin-dashboard-heading p {
+  margin: 0;
+  color: #738399;
+  font-size: 13px;
+}
+
+.admin-portal .admin-eyebrow {
+  color: var(--portal-blue);
+  font-size: 10px;
+  letter-spacing: .12em;
+}
+
+.admin-overview-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid #e6ebf2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgb(46 71 101 / 4%);
+}
+
+.admin-overview-metric {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 13px;
+  padding: 17px 20px;
+}
+
+.admin-overview-metric + .admin-overview-metric {
+  border-left: 1px solid #edf0f5;
+}
+
+.admin-overview-icon,
+.admin-feature-icon {
+  display: grid;
+  place-items: center;
+  background: #eaf3ff;
+  color: #1769c2;
+}
+
+.admin-overview-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 12px;
+}
+
+.admin-overview-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.admin-overview-metric > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.admin-overview-metric small {
+  overflow: hidden;
+  color: #7d8ba0;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-overview-metric strong {
+  color: #20344c;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.admin-feature-section {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-feature-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.admin-feature-heading h2 {
+  margin: 5px 0 0;
+  color: #23384f;
+  font-size: 21px;
+}
+
+.admin-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-feature-card {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 188px;
+  align-content: start;
+  justify-items: start;
+  gap: 11px;
+  padding: 21px;
+  border: 1px solid #e5eaf1;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgb(46 71 101 / 4%);
+  color: #263b53;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: transform 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
+}
+
+.admin-feature-card:hover,
+.admin-feature-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: #b7d4f4;
+  box-shadow: 0 14px 27px rgb(36 93 156 / 12%);
+}
+
+.admin-feature-card:focus-visible,
+.admin-sidebar-nav button:focus-visible,
+.admin-menu-toggle:focus-visible,
+.admin-notification-button:focus-visible {
+  outline: 3px solid rgb(42 127 214 / 35%);
+  outline-offset: 2px;
+}
+
+.admin-feature-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 15px;
+}
+
+.admin-feature-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.admin-feature-card > strong {
+  max-width: calc(100% - 20px);
+  color: #263b53;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.admin-feature-card > small {
+  color: #7d8ba0;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.admin-feature-arrow {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  color: #9db8d8;
+  font-size: 15px;
+}
+
+.admin-sidebar-scrim {
+  display: none;
+}
+
+.admin-info-panel {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 12px;
+}
+
+.admin-info-panel p {
+  margin: 0;
+  color: #66788d;
+  font-size: 13px;
+}
+
+.admin-portal .admin-panel {
+  border-color: #e4eaf2;
+  background: #fff;
+  box-shadow: 0 7px 24px rgb(46 71 101 / 5%);
+}
+
+.admin-portal .admin-panel-heading h2,
+.admin-portal .admin-create-form h3,
+.admin-portal .admin-account-list strong {
+  color: #253b53;
+}
+
+.admin-portal .admin-panel-heading > span,
+.admin-portal .admin-empty,
+.admin-portal .admin-create-form label,
+.admin-portal .admin-account-edit label {
+  color: #66788d;
+}
+
+.admin-portal .admin-feedback {
+  color: #52657b;
+}
+
+.admin-portal .admin-feedback.is-error {
+  color: #bd3344;
+}
+
+.admin-portal .admin-feedback.is-success {
+  color: #18764b;
+}
+
+.admin-portal .admin-stat-record,
+.admin-portal .admin-approval-record,
+.admin-portal .admin-blood-request-row,
+.admin-portal .admin-approval-detail,
+.admin-portal .admin-blood-request-detail,
+.admin-portal .admin-user-detail-card,
+.admin-portal .admin-account-list > li,
+.admin-portal .admin-create-form,
+.admin-portal .admin-account-edit {
+  border-color: #e4eaf2;
+  background: #fff;
+  box-shadow: 0 3px 12px rgb(46 71 101 / 4%);
+}
+
+.admin-portal .admin-stat-record-name,
+.admin-portal .admin-approval-record-name,
+.admin-portal .admin-blood-request-patient,
+.admin-portal .admin-approval-detail-header strong,
+.admin-portal .admin-blood-request-detail > header strong,
+.admin-portal .admin-user-detail-identity h3,
+.admin-portal .admin-user-detail-item > strong,
+.admin-portal .admin-stat-details-close {
+  color: #263b53;
+}
+
+.admin-portal .admin-stat-record-id,
+.admin-portal .admin-stat-record-email,
+.admin-portal .admin-approval-record-id,
+.admin-portal .admin-approval-record-email,
+.admin-portal .admin-approval-detail-full-message,
+.admin-portal .admin-approval-full-message,
+.admin-portal .admin-blood-request-condition,
+.admin-portal .admin-blood-request-hospital,
+.admin-portal .admin-blood-request-contact,
+.admin-portal .admin-blood-request-units,
+.admin-portal .admin-blood-request-date,
+.admin-portal .admin-blood-request-detail > p,
+.admin-portal .admin-user-detail-story {
+  color: #596c82;
+}
+
+.admin-portal .admin-stat-record:hover,
+.admin-portal .admin-approval-record:hover {
+  border-color: #c5d9ef;
+  background: #f7fbff;
+}
+
+.admin-portal .admin-approval-detail-meta > div,
+.admin-portal .admin-blood-request-detail-grid > div,
+.admin-portal .admin-user-detail-item {
+  border-color: #e8edf4;
+  background: #f8fafc;
+}
+
+.admin-portal .admin-approval-detail-meta dt,
+.admin-portal .admin-blood-request-detail-grid dt,
+.admin-portal .admin-user-detail-item > span,
+.admin-portal .admin-approval-detail-header small {
+  color: #76869a;
+}
+
+.admin-portal .admin-approval-detail-meta dd,
+.admin-portal .admin-blood-request-detail-grid dd {
+  color: #354b63;
+}
+
+.admin-portal .admin-blood-request-tabs button {
+  border-color: #e0e7f0;
+  background: #fff;
+  color: #60738a;
+}
+
+.admin-portal .admin-blood-request-tabs button.is-selected {
+  border-color: #9fc5ef;
+  background: #eff6ff;
+  color: #145da9;
+}
+
+.admin-portal .admin-blood-request-tabs strong,
+.admin-portal .admin-account-list small {
+  color: #708198;
+}
+
+.admin-portal .admin-create-form input,
+.admin-portal .admin-account-edit input,
+.admin-portal .admin-account-edit select {
+  border-color: #dce4ee;
+  background: #fff;
+  color: #263b53;
+}
+
+.admin-portal .admin-create-form input:focus,
+.admin-portal .admin-account-edit input:focus,
+.admin-portal .admin-account-edit select:focus {
+  border-color: #6ca9e9;
+  box-shadow: 0 0 0 3px rgb(42 127 214 / 12%);
+}
+
+.admin-portal .admin-primary-button {
+  border-color: var(--portal-blue);
+  background: var(--portal-blue);
+  color: #fff;
+}
+
+.admin-portal .admin-primary-button:hover {
+  border-color: var(--portal-blue-dark);
+  background: var(--portal-blue-dark);
+}
+
+.admin-portal .admin-secondary-button,
+.admin-portal .admin-stat-details-close {
+  border-color: #dce5ef;
+  background: #fff;
+  color: #4b6179;
+}
+
+.admin-portal .admin-secondary-button:hover,
+.admin-portal .admin-stat-details-close:hover {
+  border-color: #b8d2ed;
+  background: #f2f7fd;
+  color: #145da9;
+}
+
+.admin-portal .admin-danger-button {
+  border-color: #f0c7cc;
+  background: #fff5f6;
+  color: #b33140;
+}
+
+.admin-portal .admin-danger-button:hover {
+  border-color: #e4a0a9;
+  background: #ffeaed;
+  color: #9c202f;
+}
+
+.admin-portal .admin-pagination,
+.admin-portal .admin-stat-details-actions a {
+  color: #62758b;
+}
+
+.admin-portal .admin-stat-details-actions a,
+.admin-portal .admin-blood-request-detail-grid a {
+  color: #1769c2;
+}
+
+.admin-blog-management,
+.admin-management {
+  color: #263b53;
+}
+
+.admin-portal .admin-blog-categories,
+.admin-portal .admin-blog-form {
+  border-color: #e4eaf2;
+  background: #fff;
+  box-shadow: 0 6px 18px rgb(46 71 101 / 4%);
+}
+
+.admin-portal .admin-blog-categories h3,
+.admin-portal .admin-blog-form > h3,
+.admin-portal .admin-blog-editor-heading strong {
+  color: #263b53;
+}
+
+.admin-portal .admin-blog-category-form {
+  border-color: #e4eaf2;
+  background: #f8fafc;
+}
+
+.admin-portal .admin-blog-category-form label,
+.admin-portal .admin-blog-form > label,
+.admin-portal .admin-blog-filters label {
+  color: #596c82;
+}
+
+.admin-portal .admin-blog-category-form input,
+.admin-portal .admin-blog-category-form select,
+.admin-portal .admin-blog-form input:not([type="checkbox"]),
+.admin-portal .admin-blog-form textarea,
+.admin-portal .admin-blog-form select,
+.admin-portal .admin-blog-filters input,
+.admin-portal .admin-blog-filters select {
+  border-color: #dce4ee;
+  background: #fff;
+  color: #263b53;
+}
+
+.admin-portal .admin-blog-category-form input:focus,
+.admin-portal .admin-blog-category-form select:focus,
+.admin-portal .admin-blog-form input:focus,
+.admin-portal .admin-blog-form textarea:focus,
+.admin-portal .admin-blog-form select:focus,
+.admin-portal .admin-blog-filters input:focus,
+.admin-portal .admin-blog-filters select:focus {
+  border-color: #6ca9e9;
+  box-shadow: 0 0 0 3px rgb(42 127 214 / 12%);
+}
+
+.admin-portal .admin-blog-category-row,
+.admin-portal .admin-blog-row,
+.admin-portal .admin-blog-management-toggle {
+  border-color: #e4eaf2;
+  background: #fff;
+  box-shadow: 0 4px 14px rgb(46 71 101 / 4%);
+  color: #263b53;
+}
+
+.admin-portal .admin-blog-category-row:hover,
+.admin-portal .admin-blog-management-toggle:hover,
+.admin-portal .admin-blog-management-toggle:focus-visible {
+  border-color: #c5d9ef;
+  background: #f8fbff;
+  box-shadow: 0 9px 22px rgb(36 93 156 / 9%);
+}
+
+.admin-portal .admin-blog-category-info > strong,
+.admin-portal .admin-blog-row-copy > strong {
+  color: #263b53;
+}
+
+.admin-portal .admin-blog-category-info > .admin-blog-category-description,
+.admin-portal .admin-blog-category-row > .admin-blog-category-state,
+.admin-portal .admin-blog-row-copy > small,
+.admin-portal .admin-blog-filters label,
+.admin-portal .admin-blog-editor > small {
+  color: #718096;
+}
+
+.admin-portal .admin-blog-category-actions,
+.admin-portal .admin-blog-category-actions > button {
+  border-color: #e4eaf2;
+}
+
+.admin-portal .admin-blog-management-chevron {
+  color: #1769c2;
+}
+
+.admin-portal .admin-blog-toolbar button {
+  border-color: #dce5ef;
+  background: #f5f8fc;
+  color: #40546b;
+}
+
+.admin-portal .admin-blog-toolbar button:hover {
+  border-color: #9fc5ef;
+  background: #eff6ff;
+  color: #145da9;
+}
+
+.admin-portal .admin-blog-editor .blog-content {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #354b63;
+}
+
+.admin-portal .admin-blog-editor .blog-content h2,
+.admin-portal .admin-blog-editor .blog-content h3,
+.admin-portal .admin-blog-editor .blog-content h4,
+.admin-portal .admin-blog-editor .blog-content h5 {
+  color: #253b53;
+}
+
+@media (max-width: 1100px) {
+  .admin-feature-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-overview-metric {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-overview-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-overview-metric:nth-child(3) {
+    border-left: 0;
+  }
+
+  .admin-overview-metric:nth-child(n + 3) {
+    border-top: 1px solid #edf0f5;
+  }
+
+  .admin-dashboard {
+    padding: 26px 22px;
+  }
+
+  .admin-portal-topbar {
+    padding: 0 22px;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-sidebar {
+    z-index: 40;
+    width: min(290px, calc(100vw - 56px));
+    transform: translateX(-105%);
+  }
+
+  .admin-portal.is-mobile-sidebar-open .admin-sidebar {
+    transform: translateX(0);
+  }
+
+  .admin-sidebar-scrim {
+    position: fixed;
+    z-index: 35;
+    inset: 0;
+    display: block;
+    visibility: hidden;
+    border: 0;
+    background: rgb(13 31 52 / 42%);
+    opacity: 0;
+    transition: opacity 180ms ease, visibility 180ms ease;
+  }
+
+  .admin-portal.is-mobile-sidebar-open .admin-sidebar-scrim {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .admin-portal-main,
+  .admin-portal.is-sidebar-collapsed .admin-portal-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .admin-portal.is-sidebar-collapsed .admin-sidebar {
+    width: min(290px, calc(100vw - 56px));
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .admin-portal.is-sidebar-collapsed .admin-sidebar-brand {
+    justify-content: flex-start;
+    margin-right: 6px;
+    margin-left: 6px;
+  }
+
+  .admin-portal.is-sidebar-collapsed .admin-sidebar-brand > span,
+  .admin-portal.is-sidebar-collapsed .admin-sidebar-caption,
+  .admin-portal.is-sidebar-collapsed .admin-sidebar-nav button > span,
+  .admin-portal.is-sidebar-collapsed .admin-sidebar-user {
+    display: initial;
+  }
+
+  .admin-portal.is-sidebar-collapsed .admin-sidebar-nav button {
+    justify-content: flex-start;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .admin-portal.is-sidebar-collapsed .admin-sidebar-nav button.is-active {
+    box-shadow: inset 3px 0 #fff;
+  }
+
+  .admin-portal.is-sidebar-collapsed .admin-sidebar-bottom {
+    justify-content: flex-start;
+  }
+
+  .admin-portal-topbar {
+    height: 64px;
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .admin-dashboard {
+    min-height: calc(100vh - 64px);
+    gap: 20px;
+    padding: 24px 16px;
+  }
+
+  .admin-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+  }
+
+  .admin-feature-card {
+    min-height: 164px;
+    padding: 16px;
+  }
+
+  .admin-feature-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+  }
+
+  .admin-feature-icon svg {
+    width: 23px;
+    height: 23px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-profile-copy,
+  .admin-profile-chevron {
+    display: none;
+  }
+
+  .admin-dashboard-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-dashboard-heading > button {
+    align-self: flex-start;
+  }
+
+  .admin-dashboard-heading h1 {
+    font-size: 25px;
+  }
+
+  .admin-overview-metric {
+    gap: 9px;
+    padding: 12px 9px;
+  }
+
+  .admin-overview-icon {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    border-radius: 10px;
+  }
+
+  .admin-overview-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .admin-overview-metric small {
+    font-size: 9px;
+  }
+
+  .admin-overview-metric strong {
+    font-size: 17px;
+  }
+
+  .admin-feature-heading {
+    align-items: flex-start;
+  }
+
+  .admin-feature-heading > button {
+    font-size: 10px;
+  }
+
+  .admin-feature-card {
+    min-height: 152px;
+    gap: 8px;
+    padding: 13px;
+  }
+
+  .admin-feature-card > strong {
+    font-size: 11px;
+  }
+
+  .admin-feature-card > small {
+    font-size: 9px;
+  }
+
+  .admin-feature-arrow {
+    top: 16px;
+    right: 13px;
+  }
+
+  .admin-feature-count {
+    top: 15px;
+    right: 37px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-portal *,
+  .admin-portal *::before,
+  .admin-portal *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+
 @media (max-width: 520px) {
   .admin-dashboard {
     padding: 28px 14px 52px;
@@ -1406,5 +2484,493 @@
   .admin-stat-card,
   .admin-stat-details-close {
     transition-duration: 0.01ms;
+  }
+}
+
+html:has(.admin-portal),
+body:has(.admin-portal) {
+  overflow-x: clip;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html:has(.admin-portal)::-webkit-scrollbar,
+body:has(.admin-portal)::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-portal {
+  --portal-blue: var(--red);
+  --portal-blue-dark: var(--red-dark);
+  --portal-ink: var(--ink);
+  --portal-muted: var(--muted);
+  background: var(--cream);
+  color: var(--ink);
+  color-scheme: dark;
+}
+
+.admin-sidebar {
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: linear-gradient(165deg, var(--surface-raised), var(--cream) 76%, #211116);
+  color: var(--ink);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-sidebar::-webkit-scrollbar,
+.admin-portal-main::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-sidebar-brand,
+.admin-sidebar-brand:hover,
+.admin-sidebar-brand:focus-visible {
+  color: var(--ink);
+}
+
+.admin-sidebar-brand img {
+  border-color: rgb(236 38 51 / 45%);
+}
+
+.admin-sidebar-brand small,
+.admin-sidebar-caption,
+.admin-sidebar-nav button,
+.admin-sidebar-user small {
+  color: var(--muted);
+}
+
+.admin-sidebar-nav button:hover,
+.admin-sidebar-nav button.is-active {
+  background: rgb(236 38 51 / 12%);
+  color: var(--ink);
+}
+
+.admin-sidebar-nav button.is-active {
+  box-shadow: inset 3px 0 var(--red);
+}
+
+.admin-sidebar-badge {
+  background: var(--red);
+  color: #fff;
+}
+
+.admin-sidebar-bottom {
+  border-color: var(--line);
+}
+
+.admin-sidebar-avatar,
+.admin-profile-avatar {
+  background: rgb(236 38 51 / 14%);
+  color: #ff7b83;
+}
+
+.admin-sidebar-user strong {
+  color: var(--ink);
+}
+
+.admin-portal-main {
+  overflow-x: clip;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-portal-topbar {
+  border-color: var(--line);
+  background: rgb(13 16 23 / 94%);
+  box-shadow: 0 3px 12px rgb(0 0 0 / 18%);
+}
+
+.admin-menu-toggle,
+.admin-notification-button,
+.admin-language-toggle {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.admin-menu-toggle:hover,
+.admin-notification-button:hover,
+.admin-language-toggle:hover {
+  border-color: rgb(236 38 51 / 50%);
+  background: var(--surface-raised);
+}
+
+.admin-notification-button > span {
+  border-color: var(--surface);
+  background: var(--red);
+}
+
+.admin-profile-avatar {
+  background: rgb(236 38 51 / 14%);
+}
+
+.admin-profile-copy strong {
+  color: var(--ink);
+}
+
+.admin-profile-copy small,
+.admin-profile-chevron {
+  color: var(--muted);
+}
+
+.admin-profile-dropdown {
+  border-color: var(--line);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-profile-dropdown a,
+.admin-profile-dropdown button {
+  color: var(--muted);
+}
+
+.admin-profile-dropdown a:hover,
+.admin-profile-dropdown button:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.admin-dashboard {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.admin-dashboard-heading h1,
+.admin-feature-heading h2 {
+  color: var(--ink);
+}
+
+.admin-dashboard-heading p,
+.admin-overview-metric small,
+.admin-feature-card > small {
+  color: var(--muted);
+}
+
+.admin-overview-strip,
+.admin-feature-card {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-overview-metric + .admin-overview-metric,
+.admin-overview-metric:nth-child(n + 3) {
+  border-color: var(--line);
+}
+
+.admin-overview-icon,
+.admin-feature-icon {
+  background: rgb(236 38 51 / 12%);
+  color: var(--red);
+}
+
+.admin-overview-metric strong,
+.admin-feature-card > strong {
+  color: var(--ink);
+}
+
+.admin-feature-card:hover,
+.admin-feature-card:focus-visible {
+  border-color: rgb(236 38 51 / 48%);
+  box-shadow: 0 14px 27px rgb(0 0 0 / 28%);
+}
+
+.admin-feature-card:focus-visible,
+.admin-sidebar-nav button:focus-visible,
+.admin-menu-toggle:focus-visible,
+.admin-notification-button:focus-visible,
+.admin-language-toggle:focus-visible {
+  outline: 3px solid rgb(236 38 51 / 38%);
+}
+
+.admin-feature-arrow {
+  color: var(--red);
+}
+
+.admin-feature-count {
+  position: absolute;
+  top: 21px;
+  right: 46px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.admin-sidebar-scrim {
+  background: rgb(0 0 0 / 64%);
+}
+
+.admin-portal .admin-eyebrow {
+  color: #ff5962;
+}
+
+.admin-portal .admin-panel,
+.admin-portal .admin-stat-record,
+.admin-portal .admin-approval-record,
+.admin-portal .admin-blood-request-row,
+.admin-portal .admin-approval-detail,
+.admin-portal .admin-blood-request-detail,
+.admin-portal .admin-user-detail-card,
+.admin-portal .admin-account-list > li,
+.admin-portal .admin-create-form,
+.admin-portal .admin-account-edit {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-portal .admin-panel-heading h2,
+.admin-portal .admin-create-form h3,
+.admin-portal .admin-account-list strong,
+.admin-portal .admin-stat-record-name,
+.admin-portal .admin-approval-record-name,
+.admin-portal .admin-blood-request-patient,
+.admin-portal .admin-approval-detail-header strong,
+.admin-portal .admin-blood-request-detail > header strong,
+.admin-portal .admin-user-detail-identity h3,
+.admin-portal .admin-user-detail-item > strong,
+.admin-portal .admin-stat-details-close {
+  color: var(--ink);
+}
+
+.admin-portal .admin-panel-heading > span,
+.admin-portal .admin-empty,
+.admin-portal .admin-create-form label,
+.admin-portal .admin-account-edit label,
+.admin-portal .admin-stat-record-id,
+.admin-portal .admin-stat-record-email,
+.admin-portal .admin-approval-record-id,
+.admin-portal .admin-approval-record-email,
+.admin-portal .admin-approval-full-message,
+.admin-portal .admin-blood-request-condition,
+.admin-portal .admin-blood-request-hospital,
+.admin-portal .admin-blood-request-contact,
+.admin-portal .admin-blood-request-units,
+.admin-portal .admin-blood-request-date,
+.admin-portal .admin-blood-request-detail > p,
+.admin-portal .admin-user-detail-story,
+.admin-portal .admin-account-list small {
+  color: var(--muted);
+}
+
+.admin-portal .admin-stat-record:hover,
+.admin-portal .admin-approval-record:hover {
+  border-color: rgb(236 38 51 / 42%);
+  background: var(--surface-raised);
+}
+
+.admin-portal .admin-approval-detail-meta > div,
+.admin-portal .admin-blood-request-detail-grid > div,
+.admin-portal .admin-user-detail-item {
+  border-color: var(--line);
+  background: var(--cream);
+}
+
+.admin-portal .admin-approval-detail-meta dt,
+.admin-portal .admin-blood-request-detail-grid dt,
+.admin-portal .admin-user-detail-item > span,
+.admin-portal .admin-approval-detail-header small {
+  color: var(--muted);
+}
+
+.admin-portal .admin-approval-detail-meta dd,
+.admin-portal .admin-blood-request-detail-grid dd {
+  color: var(--ink);
+}
+
+.admin-portal .admin-blood-request-tabs button {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.admin-portal .admin-blood-request-tabs button.is-selected {
+  border-color: rgb(236 38 51 / 52%);
+  background: rgb(236 38 51 / 12%);
+  color: var(--ink);
+}
+
+.admin-portal .admin-blood-request-tabs strong {
+  color: var(--ink);
+}
+
+.admin-portal .admin-create-form input,
+.admin-portal .admin-account-edit input,
+.admin-portal .admin-account-edit select {
+  border-color: var(--line);
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.admin-portal .admin-create-form input:focus,
+.admin-portal .admin-account-edit input:focus,
+.admin-portal .admin-account-edit select:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgb(236 38 51 / 14%);
+}
+
+.admin-portal .admin-primary-button {
+  border-color: var(--red);
+  background: var(--red);
+  color: #fff;
+}
+
+.admin-portal .admin-primary-button:hover {
+  border-color: var(--red-dark);
+  background: var(--red-dark);
+}
+
+.admin-portal .admin-secondary-button,
+.admin-portal .admin-stat-details-close {
+  border-color: var(--line);
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+
+.admin-portal .admin-secondary-button:hover,
+.admin-portal .admin-stat-details-close:hover {
+  border-color: rgb(236 38 51 / 50%);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.admin-portal .admin-danger-button {
+  border-color: rgb(236 38 51 / 45%);
+  background: rgb(236 38 51 / 10%);
+  color: #ff7b83;
+}
+
+.admin-portal .admin-danger-button:hover {
+  border-color: var(--red);
+  background: rgb(236 38 51 / 20%);
+  color: #ff9aa0;
+}
+
+.admin-portal .admin-pagination,
+.admin-portal .admin-stat-details-actions a,
+.admin-portal .admin-blood-request-detail-grid a {
+  color: #ff848b;
+}
+
+.admin-portal .admin-blog-categories,
+.admin-portal .admin-blog-form {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-portal .admin-blog-categories h3,
+.admin-portal .admin-blog-form > h3,
+.admin-portal .admin-blog-editor-heading strong,
+.admin-portal .admin-blog-category-info > strong,
+.admin-portal .admin-blog-row-copy > strong {
+  color: var(--ink);
+}
+
+.admin-portal .admin-blog-category-form {
+  border-color: var(--line);
+  background: var(--cream);
+}
+
+.admin-portal .admin-blog-category-form label,
+.admin-portal .admin-blog-form > label,
+.admin-portal .admin-blog-filters label,
+.admin-portal .admin-blog-editor > small,
+.admin-portal .admin-blog-category-info > .admin-blog-category-description,
+.admin-portal .admin-blog-category-row > .admin-blog-category-state,
+.admin-portal .admin-blog-row-copy > small {
+  color: var(--muted);
+}
+
+.admin-portal .admin-blog-category-form input,
+.admin-portal .admin-blog-category-form select,
+.admin-portal .admin-blog-form input:not([type="checkbox"]),
+.admin-portal .admin-blog-form textarea,
+.admin-portal .admin-blog-form select,
+.admin-portal .admin-blog-filters input,
+.admin-portal .admin-blog-filters select {
+  border-color: var(--line);
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.admin-portal .admin-blog-category-form input:focus,
+.admin-portal .admin-blog-category-form select:focus,
+.admin-portal .admin-blog-form input:focus,
+.admin-portal .admin-blog-form textarea:focus,
+.admin-portal .admin-blog-form select:focus,
+.admin-portal .admin-blog-filters input:focus,
+.admin-portal .admin-blog-filters select:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgb(236 38 51 / 14%);
+}
+
+.admin-portal .admin-blog-category-row,
+.admin-portal .admin-blog-row,
+.admin-portal .admin-blog-management-toggle {
+  border-color: var(--line);
+  background: var(--surface-raised);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
+  color: var(--ink);
+}
+
+.admin-portal .admin-blog-category-row:hover,
+.admin-portal .admin-blog-management-toggle:hover,
+.admin-portal .admin-blog-management-toggle:focus-visible {
+  border-color: rgb(236 38 51 / 45%);
+  background: var(--surface);
+}
+
+.admin-portal .admin-blog-category-actions,
+.admin-portal .admin-blog-category-actions > button {
+  border-color: var(--line);
+}
+
+.admin-portal .admin-blog-management-chevron {
+  color: #ff848b;
+}
+
+.admin-portal .admin-blog-toolbar button {
+  border-color: var(--line);
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+
+.admin-portal .admin-blog-toolbar button:hover {
+  border-color: var(--red);
+  background: rgb(236 38 51 / 10%);
+}
+
+.admin-portal .admin-blog-editor .blog-content {
+  border-color: var(--line);
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.admin-portal .admin-blog-editor .blog-content h2,
+.admin-portal .admin-blog-editor .blog-content h3,
+.admin-portal .admin-blog-editor .blog-content h4,
+.admin-portal .admin-blog-editor .blog-content h5 {
+  color: var(--ink);
+}
+
+.admin-language-toggle {
+  min-width: 62px;
+  min-height: 38px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .admin-language-toggle {
+    min-width: 52px;
+    min-height: 36px;
+    padding: 5px 7px;
   }
 }
