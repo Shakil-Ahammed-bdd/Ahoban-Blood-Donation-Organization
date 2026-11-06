@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import DonorExperienceCard from '../components/landing/DonorExperienceCard'
 import DonorContactActions from '../components/landing/DonorContactActions'
 import { donorApi } from '../services/api/donorApi'
+import { responsiveImageProps } from '../utils/responsiveImage'
 import { formatDonationDate } from '../utils/formatDonationDate'
 import { useLanguage } from '../contexts/useLanguage'
 import { translateErrorMessage } from '../contexts/translationUtils'
@@ -64,7 +65,7 @@ function DonorProfilePage() {
               <header className="public-donor-profile-heading">
                 <span aria-hidden="true" className="donor-avatar">
                   {donor.profilePhotoUrl
-                    ? <img alt="" src={donor.profilePhotoUrl} />
+                    ? <img alt="" decoding="async" loading="lazy" {...responsiveImageProps(donor.profilePhotoUrl, [128, 256, 512], '(max-width: 700px) 96px, 128px')} />
                     : donor.fullName.trim().split(/\s+/).slice(0, 2).map((part) => Array.from(part)[0]).join('')}
                 </span>
                 <div>

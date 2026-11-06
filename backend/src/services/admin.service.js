@@ -3,6 +3,7 @@ const User = require('../models/User')
 const Experience = require('../models/Experience')
 const HttpError = require('../errors/http-error')
 const { createAdminAccount } = require('./auth.service')
+const { invalidateLiveImpactCache } = require('./stats.service')
 const { approvedExperienceCriteria } = require('../utils/experience-status')
 
 function ensureDatabase() {
@@ -199,6 +200,7 @@ async function deleteAdmin(id, currentUser) {
     }
     throw new HttpError(404, 'ADMIN_NOT_FOUND', 'The admin account was not found.')
   }
+  invalidateLiveImpactCache()
   return { deleted: true, id: String(target._id) }
 }
 

@@ -91,7 +91,7 @@ function serializeCategory(category) {
 }
 
 function sanitizeAndValidateContent(content) {
-  const sanitized = sanitizeBlogContent(content)
+  const sanitized = sanitizeBlogContent(content, { preserveEditorComments: true })
   const text = sanitized?.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;/gi, ' ').trim()
   if (!sanitized || (!text && !/<(?:img|iframe)\b/i.test(sanitized))) {
     throw new HttpError(400, 'INVALID_BLOG', 'Blog content must include text or media.')
@@ -99,7 +99,7 @@ function sanitizeAndValidateContent(content) {
   return sanitized
 }
 
-function serializeBlog(blog) {
+function serializeBlog(blog, { includeEditorComments = false } = {}) {
   return {
     id: String(blog._id || blog.id),
     title: blog.title,
@@ -107,7 +107,7 @@ function serializeBlog(blog) {
     shortDescription: blog.shortDescription,
     coverImage: blog.coverImage,
     category: blog.category,
-    content: sanitizeBlogContent(blog.content),
+    content: sanitizeBlogContent(blog.content, { preserveEditorComments: includeEditorComments }),
     author: blog.author,
     status: blog.status,
     publishAt: blog.publishAt,
@@ -157,7 +157,7 @@ async function listBlogs({ page = 1, limit = 9, category = '', search = '', stat
         .lean(),
   ])
   return {
-    blogs: blogs.map(serializeBlog),
+    blogs: blogs.map((blog) => serializeBlog(blog, { includeEditorComments: isAdmin })),
     featuredBlog: featured ? serializeBlog(featured) : null,
     categories: [...new Set([...managedCategories.map(({ name }) => name), ...usedCategories])]
       .sort((left, right) => left.localeCompare(right)),
@@ -206,7 +206,7 @@ async function createBlog(input, coverFile, userId) {
     }
     throw error
   }
-  return serializeBlog(blog)
+  return serializeBlog(blog, { includeEditorComments: true })
 }
 
 async function updateBlog(id, input, coverFile) {
@@ -235,7 +235,7 @@ async function updateBlog(id, input, coverFile) {
     throw error
   }
   if (newCover && previousCover !== newCover) await removeBlogImage(previousCover)
-  return serializeBlog(blog)
+  return serializeBlog(blog, { includeEditorComments: true })
 }
 
 async function deleteBlog(id) {

@@ -6,6 +6,7 @@ import { donorApi } from '../services/api/donorApi'
 import { experienceApi } from '../services/api/experienceApi'
 import { useLanguage } from '../contexts/useLanguage'
 import BlogManagement from '../components/admin/BlogManagement'
+import ThemeToggle from '../components/ThemeToggle'
 
 const EMPTY_DASHBOARD = {
   overview: null,
@@ -529,6 +530,7 @@ function AdminDashboardPage() {
               <Link to="/profile">
                 <PortalIcon name="user" />{t('প্রোফাইল')}
               </Link>
+              <ThemeToggle className="admin-theme-toggle" />
               <button onClick={handleLogout} type="button">
                 <PortalIcon name="settings" />{t('লগ আউট')}
               </button>

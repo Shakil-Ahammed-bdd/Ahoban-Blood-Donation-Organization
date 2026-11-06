@@ -9,6 +9,7 @@ const { deleteUserInteractions } = require('./experience-social.service')
 const { isAvailableToDonate } = require('../utils/donation-eligibility')
 const { badgeSummary, getDonorBadge } = require('./donor-badge.service')
 const { approvedExperienceCriteria } = require('../utils/experience-status')
+const { invalidateLiveImpactCache } = require('./stats.service')
 
 function ensureDatabase() {
   if (mongoose.connection.readyState !== 1) {
@@ -89,6 +90,7 @@ async function updateProfile(userId, changes) {
     { returnDocument: 'after', runValidators: true, context: 'query' },
   )
   if (!user) throw new HttpError(404, 'PROFILE_NOT_FOUND', 'The user profile was not found.')
+  invalidateLiveImpactCache()
   return toProfileUser(user)
 }
 
@@ -158,6 +160,7 @@ async function deleteProfile(userId) {
   }
   await deleteUserInteractions(userId)
   await User.deleteOne({ _id: userId })
+  invalidateLiveImpactCache()
   await removeAvatar(user.profilePhotoUrl)
 }
 

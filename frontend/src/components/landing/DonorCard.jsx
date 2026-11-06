@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import DonorContactActions from './DonorContactActions'
 import { formatDonationDate } from '../../utils/formatDonationDate'
 import { useLanguage } from '../../contexts/useLanguage'
+import { responsiveImageProps } from '../../utils/responsiveImage'
 
 function DonorCard({ donor }) {
   const { t, language } = useLanguage()
@@ -20,7 +21,7 @@ function DonorCard({ donor }) {
       <div className="donor-card-layout">
         <div aria-hidden="true" className="donor-photo-frame">
           {donor.profilePhotoUrl
-            ? <img alt="" className="donor-photo" loading="lazy" src={donor.profilePhotoUrl} />
+            ? <img alt="" className="donor-photo" decoding="async" loading="lazy" {...responsiveImageProps(donor.profilePhotoUrl, [96, 192, 320], '(max-width: 700px) 76px, 82px')} />
             : <span className="donor-photo-fallback">{initials}</span>}
         </div>
         <div className="donor-card-header-content">

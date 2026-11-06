@@ -12,6 +12,7 @@ const ALLOWED_ATTRIBUTES = {
   figure: ['data-type', 'data-alignment'],
   iframe: ['allow', 'allowfullscreen', 'frameborder', 'height', 'src', 'title', 'width'],
   img: ['alt', 'data-alignment', 'data-caption', 'height', 'src', 'title', 'width'],
+  span: ['data-editor-comment'],
   td: ['colspan', 'rowspan', 'style'],
   th: ['colspan', 'rowspan', 'style'],
   '*': ['data-color', 'data-indent', 'data-paragraph-spacing', 'style'],
@@ -36,11 +37,14 @@ function isRichHtml(content) {
   return /<\s*(?:a|blockquote|br|del|div|em|figure|h[1-6]|hr|iframe|img|li|mark|ol|p|pre|s|span|strong|sub|sup|table|u|ul)\b/i.test(content)
 }
 
-function sanitizeBlogContent(content) {
+function sanitizeBlogContent(content, { preserveEditorComments = false } = {}) {
   if (typeof content !== 'string' || !isRichHtml(content)) return content
+  const allowedAttributes = preserveEditorComments
+    ? ALLOWED_ATTRIBUTES
+    : { ...ALLOWED_ATTRIBUTES, span: [] }
   return sanitizeHtml(content, {
     allowedTags: ALLOWED_TAGS,
-    allowedAttributes: ALLOWED_ATTRIBUTES,
+    allowedAttributes,
     allowedStyles: ALLOWED_STYLES,
     allowedSchemes: ['https', 'http', 'mailto', 'tel'],
     allowedSchemesByTag: {

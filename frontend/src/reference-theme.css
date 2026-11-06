@@ -2,7 +2,6 @@
   color-scheme: dark;
   color: #f4f4f5;
   background: #080a10;
-  font-family: Inter, "Noto Sans Bengali", "Hind Siliguri", "Nirmala UI", sans-serif;
   --ink: #f4f4f5;
   --muted: #a1a1aa;
   --red: #ec2633;
@@ -19,12 +18,6 @@
 
 html {
   background: #080a10;
-}
-
-body,
-button,
-a {
-  font-family: Inter, "Noto Sans Bengali", "Hind Siliguri", "Nirmala UI", sans-serif;
 }
 
 body {

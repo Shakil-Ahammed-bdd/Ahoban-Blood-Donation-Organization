@@ -14,6 +14,7 @@ const ExperienceComment = require('../src/models/ExperienceComment')
 const ExperienceReaction = require('../src/models/ExperienceReaction')
 const User = require('../src/models/User')
 const { removeImages } = require('../src/services/experience-image-storage')
+const { invalidateLiveImpactCache } = require('../src/services/stats.service')
 
 test('registration, profiles, donor search, and cookie-based authentication lifecycle', async () => {
   const databaseUri =
@@ -115,6 +116,7 @@ test('registration, profiles, donor search, and cookie-based authentication life
         userId: `AHB-${randomBytes(8).toString('hex').toUpperCase()}`,
       },
     ])
+    invalidateLiveImpactCache()
     const legacyDataImpact = await fetch(`${baseUrl}/api/stats/live-impact`).then((response) => response.json())
     assert.equal(legacyDataImpact.totalRegistered, initialImpact.totalRegistered + 2)
     assert.deepEqual(legacyDataImpact.bloodGroups, initialImpact.bloodGroups)
@@ -351,6 +353,7 @@ test('registration, profiles, donor search, and cookie-based authentication life
     ]
     await Promise.all(yearSpecificFixtures.map(([id, createdAt]) =>
       User.collection.updateOne({ _id: new mongoose.Types.ObjectId(id) }, { $set: { createdAt } })))
+    invalidateLiveImpactCache()
     const yearSpecificImpact = await fetch(`${baseUrl}/api/stats/live-impact`).then((response) => response.json())
     const january2025 = yearSpecificImpact.monthlyRegistrations.find(
       ({ year, month }) => year === 2025 && month === 1,

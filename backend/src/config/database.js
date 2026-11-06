@@ -10,7 +10,13 @@ async function connectDatabase(uri) {
   }
 
   try {
-    await mongoose.connect(uri)
+    const maxPoolSize = Number.parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10', 10)
+    await mongoose.connect(uri, {
+      maxPoolSize: Number.isInteger(maxPoolSize) && maxPoolSize > 0 ? maxPoolSize : 10,
+      minPoolSize: 0,
+      maxIdleTimeMS: 30_000,
+      serverSelectionTimeoutMS: 10_000,
+    })
     await User.collection.createIndex(
       { role: 1 },
       {

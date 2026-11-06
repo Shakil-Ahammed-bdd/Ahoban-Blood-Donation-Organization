@@ -31,3 +31,10 @@ test('keeps legacy markdown content unchanged', () => {
   const markdown = '## Legacy\n\n**Existing** content.'
   assert.equal(sanitizeBlogContent(markdown), markdown)
 })
+
+test('preserves editorial comments for admin editing but removes their metadata from public content', () => {
+  const markedHtml = '<p><span data-editor-comment="editor note">Selected text</span></p>'
+  assert.match(sanitizeBlogContent(markedHtml, { preserveEditorComments: true }), /data-editor-comment="editor note"/)
+  assert.doesNotMatch(sanitizeBlogContent(markedHtml), /data-editor-comment/)
+  assert.match(sanitizeBlogContent(markedHtml), /Selected text/)
+})

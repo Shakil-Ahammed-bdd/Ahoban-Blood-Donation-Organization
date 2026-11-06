@@ -551,3 +551,186 @@
     transition: none;
   }
 }
+
+.profile-appearance {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 18px;
+  padding: clamp(18px, 3vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.profile-appearance-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.profile-appearance-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: rgb(185 49 64 / 9%);
+  color: var(--red);
+}
+
+.profile-appearance-icon svg {
+  width: 21px;
+  height: 21px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.profile-appearance-copy h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.profile-appearance-copy p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (min-width: 700px) {
+  .profile-appearance {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, .75fr);
+    align-items: center;
+  }
+}
+
+html[data-theme="light"] .auth-page,
+html[data-theme="light"] .auth-loading {
+  background:
+    radial-gradient(ellipse at 50% 0, rgb(185 49 64 / 8%), transparent 48%),
+    #f6f3ed;
+}
+
+html[data-theme="light"] .auth-card {
+  border-color: #e8e1d8;
+  background: linear-gradient(150deg, #fffefa, #fffdfa);
+  box-shadow: 0 24px 64px rgb(65 48 34 / 10%);
+}
+
+html[data-theme="light"] .auth-brand img {
+  border-color: #eee5db;
+}
+
+html[data-theme="light"] .auth-brand strong,
+html[data-theme="light"] .auth-eyebrow,
+html[data-theme="light"] .auth-password-field .password-toggle {
+  color: var(--red);
+}
+
+html[data-theme="light"] .auth-brand small,
+html[data-theme="light"] .auth-heading > p,
+html[data-theme="light"] .auth-field > small,
+html[data-theme="light"] .registration-photo-field > small,
+html[data-theme="light"] .current-location-control > small,
+html[data-theme="light"] .auth-switch,
+html[data-theme="light"] .auth-footer {
+  color: var(--muted);
+}
+
+html[data-theme="light"] .auth-heading h1,
+html[data-theme="light"] .auth-field,
+html[data-theme="light"] .auth-checkbox,
+html[data-theme="light"] .auth-loading {
+  color: var(--ink);
+}
+
+html[data-theme="light"] .auth-field input,
+html[data-theme="light"] .auth-field select {
+  border-color: #ddd5ca;
+  background: #fffefa;
+  color: #292522;
+}
+
+html[data-theme="light"] .auth-field select {
+  color-scheme: light;
+}
+
+html[data-theme="light"] .auth-field input:focus,
+html[data-theme="light"] .auth-field select:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgb(185 49 64 / 12%);
+}
+
+html[data-theme="light"] .auth-field input:disabled {
+  background: #f0ede7;
+  color: #706a64;
+}
+
+html[data-theme="light"] .auth-field input::placeholder {
+  color: #8a837b;
+}
+
+html[data-theme="light"] .auth-field input[aria-invalid="true"],
+html[data-theme="light"] .auth-field select[aria-invalid="true"] {
+  border-color: #c93443;
+}
+
+html[data-theme="light"] .registration-photo-preview {
+  border-color: #ead9d7;
+  background: linear-gradient(145deg, #fff0ee, #f3f1ed);
+  color: #a92130;
+}
+
+html[data-theme="light"] .auth-alert {
+  border-color: #edb6bb;
+  background: #fff0f1;
+  color: #912934;
+}
+
+html[data-theme="light"] .auth-success {
+  border-color: #a9d8bd;
+  background: #effaf3;
+  color: #20643d;
+}
+
+html[data-theme="light"] .auth-secondary {
+  border-color: #ded7cf;
+  background: #f7f4ef;
+  color: #423c36;
+}
+
+html[data-theme="light"] .auth-secondary:hover:not(:disabled) {
+  border-color: #c9bfb3;
+  background: #eee9e1;
+}
+
+html[data-theme="light"] .auth-switch a {
+  color: var(--red-dark);
+}
+
+html[data-theme="light"] .profile-details {
+  border-color: #e6dfd6;
+  background: #fffefa;
+}
+
+html[data-theme="light"] .profile-details > div + div {
+  border-top-color: #eee8e0;
+}
+
+html[data-theme="light"] .profile-details dt {
+  color: #706a64;
+}
+
+html[data-theme="light"] .profile-details dd {
+  color: #292522;
+}
+
+html[data-theme="light"] .profile-loading {
+  color: var(--muted);
+}

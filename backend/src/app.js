@@ -33,7 +33,8 @@ app.use(
   express.static(blogImageDirectory, {
     fallthrough: true,
     index: false,
-    maxAge: '1d',
+    immutable: true,
+    maxAge: '1y',
   }),
 )
 app.use(
@@ -41,7 +42,8 @@ app.use(
   express.static(imageDirectory, {
     fallthrough: true,
     index: false,
-    maxAge: '1d',
+    immutable: true,
+    maxAge: '1y',
   }),
 )
 app.use(
@@ -49,7 +51,8 @@ app.use(
   express.static(avatarDirectory, {
     fallthrough: true,
     index: false,
-    maxAge: '1d',
+    immutable: true,
+    maxAge: '1y',
   }),
 )
 app.use('/api/auth', authRoutes)

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/useAuth'
 import { experienceApi } from '../../services/api/experienceApi'
 import { useLanguage } from '../../contexts/useLanguage'
 import { translateErrorMessage } from '../../contexts/translationUtils'
+import { responsiveImageProps } from '../../utils/responsiveImage'
 
 function formatDate(value, options = { dateStyle: 'medium' }, language = 'bn') {
   return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', options).format(new Date(value))
@@ -16,7 +17,7 @@ function initials(name = '') {
 function Avatar({ name, url, className = '' }) {
   return (
     <span aria-hidden="true" className={`experience-avatar ${className}`}>
-      {url ? <img alt="" loading="lazy" src={url} /> : initials(name)}
+      {url ? <img alt="" decoding="async" loading="lazy" {...responsiveImageProps(url, [64, 128, 256], '42px')} /> : initials(name)}
     </span>
   )
 }
@@ -232,7 +233,7 @@ function DonorExperienceCard({ experience, owner = false, onEdit, onDelete, onOp
               onClick={() => setActiveImage(index)}
               type="button"
             >
-              <img alt={t('দাতার রক্তদানের ছবি {number}', { number: index + 1 })} loading={index > 0 ? 'lazy' : 'eager'} src={image} />
+              <img alt={t('দাতার রক্তদানের ছবি {number}', { number: index + 1 })} decoding="async" loading={index > 0 ? 'lazy' : 'eager'} {...responsiveImageProps(image, [400, 800, 1200], '(max-width: 700px) 90vw, 40vw')} />
               {index === 3 && !expanded && images.length > 4 && <span>+{images.length - 4}</span>}
             </button>
           ))}

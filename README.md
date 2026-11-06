@@ -419,13 +419,12 @@ the current page does not import or depend on them.
 - Donor experiences have a dedicated `/donor-experiences` page. Submissions
   include 1–5 optimized photos and explicit public consent, and appear publicly
   immediately after validation and save. Images are size/type checked and
-  stored on disk by a replaceable storage adapter; MongoDB stores only image
-  references. Configure `EXPERIENCE_IMAGE_DIR` when local uploads should live
-  outside the default backend uploads folder.
+  converted to WebP. Local development uses a replaceable local storage adapter;
+  production uploads use Cloudinary and MongoDB stores permanent HTTPS URLs.
 - Each donor keeps one account/profile. Public experiences appear both in the
   public feed and on the author's public profile. A profile
   photo is optional, uploaded through the authenticated profile endpoint, and
-  stored as an optimized WebP file outside MongoDB. Donors can review and
+  stored as an optimized WebP image outside MongoDB. Donors can review and
   manage their own public posts.
 - Public posts support one `like` or `love` reaction per user, with
   repeat clicks toggling it off and changing type updating the same record.
@@ -595,6 +594,11 @@ Edit the root `.env` and provide:
 | `JWT_SECRET` | Required, unique random value at least 32 bytes long. The API refuses to start with a missing, short, or example placeholder value. |
 | `CLIENT_URL` | Allowed browser origin for CORS; defaults to `http://localhost:5173`. |
 | `EXPERIENCE_IMAGE_DIR` | Optional local directory for donor experience photos; defaults to `backend/uploads/experiences`. |
+| `IMAGE_STORAGE` | Set to `cloudinary` to require Cloudinary in any environment. Render/production requires cloud storage automatically. |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name (non-secret). |
+| `CLOUDINARY_API_KEY` | Cloudinary API key (secret; configure in the deployment environment). |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret (secret; configure in the deployment environment). |
+| `MONGODB_MAX_POOL_SIZE` | Maximum MongoDB connections per API process; defaults to `10`. |
 
 Generate a development secret in PowerShell and set the output as `JWT_SECRET`
 in the root `.env`:
@@ -628,10 +632,29 @@ an existing Super Admin.
 
 MongoDB Atlas must allow connections from the Render service and the database
 user in `MONGODB_URI` should have access only to the application database. If
-uploaded experience photos and profile avatars must survive Render restarts or
-deploys, attach a persistent disk at the backend `uploads` directory and set
-`EXPERIENCE_IMAGE_DIR` to an `experiences` subdirectory on that disk. Without
-persistent storage, uploaded files on Render's local filesystem are ephemeral.
+uploaded images must be visible to every user and survive Render restarts, set
+`IMAGE_STORAGE=cloudinary` and add `CLOUDINARY_CLOUD_NAME`,
+`CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` to the Render environment.
+New avatars, donor-experience photos, and blog cover photos are compressed to
+WebP and stored in separate Cloudinary folders. The frontend requests responsive
+Cloudinary variants; local development remains available without credentials.
+Do not put Cloudinary secrets in Netlify or source control.
+
+For existing local image files, first make sure the old files are still
+accessible and the Cloudinary variables plus `MONGODB_URI` are set. Run
+`npm --prefix backend run migrate:images:cloudinary` from the repository root.
+The migration updates database URLs only after each upload succeeds and keeps
+all local source files as rollback backups. On a missing source file, it reports
+the path and exits without deleting that record's database references. A
+migration cannot recover images that were already lost from an ephemeral Render
+filesystem. Run this migration before removing or replacing any persistent
+source disk.
+
+The public live-impact endpoint caches aggregate results briefly, uses
+MongoDB's estimated collection count and indexed aggregation queries, and
+invalidates the cache after user-count or blood-group changes. The homepage
+loads recent donors only as that section approaches the viewport; donor and
+blog image cards request lazy, responsive Cloudinary variants.
 
 ## Run commands
 

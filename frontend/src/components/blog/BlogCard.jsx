@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../../contexts/useLanguage'
+import { responsiveImageProps } from '../../utils/responsiveImage'
 
 function formatDate(value, language) {
   return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', {
@@ -12,7 +13,7 @@ function BlogCard({ blog, featured = false }) {
   return (
     <article className={`blog-card${featured ? ' blog-card-featured' : ''}`}>
       <Link aria-label={blog.title} className="blog-card-cover" to={`/blog/${encodeURIComponent(blog.slug)}`}>
-        <img alt={blog.title} loading="lazy" src={blog.coverImage} />
+        <img alt={blog.title} decoding="async" loading="lazy" {...responsiveImageProps(blog.coverImage, [480, 800, 1200], '(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw')} />
         <span className="blog-category-badge">{t(blog.category)}</span>
       </Link>
       <div className="blog-card-body">

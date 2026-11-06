@@ -5,6 +5,7 @@ const User = require('../models/User')
 const HttpError = require('../errors/http-error')
 const { isAvailableToDonate } = require('../utils/donation-eligibility')
 const { validateAdminCreation } = require('../utils/auth-validation')
+const { invalidateLiveImpactCache } = require('./stats.service')
 
 const PASSWORD_ROUNDS = 12
 const USER_ROLES = new Set(['user', 'admin', 'super_admin'])
@@ -79,6 +80,7 @@ async function registerUser(input) {
 
     try {
       await user.save()
+      invalidateLiveImpactCache()
       return toPublicUser(user)
     } catch (error) {
       if (isDuplicateKey(error, 'email')) {
@@ -130,6 +132,7 @@ async function createAdminAccount(input) {
     }
     throw error
   }
+  invalidateLiveImpactCache()
   return toPublicUser(user)
 }
 

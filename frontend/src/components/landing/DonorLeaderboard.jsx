@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '../../contexts/useLanguage'
 import { translateErrorMessage } from '../../contexts/translationUtils'
 import { leaderboardApi } from '../../services/api/leaderboardApi'
+import { responsiveImageProps } from '../../utils/responsiveImage'
 
 const RANK_CATEGORIES = {
   1: { label: 'গোল্ড', medal: '🥇', className: 'gold' },
@@ -22,7 +23,7 @@ function DonorIdentity({ donor }) {
     >
       <span aria-hidden="true" className="top-donor-avatar">
         {donor.profilePhotoUrl
-          ? <img alt="" src={donor.profilePhotoUrl} />
+          ? <img alt="" decoding="async" loading="lazy" {...responsiveImageProps(donor.profilePhotoUrl, [64, 128, 256], '64px')} />
           : (
             <svg fill="none" viewBox="0 0 24 24">
               <circle cx="12" cy="8" r="3.4" />

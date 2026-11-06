@@ -418,6 +418,8 @@ function BlogManagement() {
                 <BlogRichTextEditor
                   onChange={(content) => setForm((current) => ({ ...current, content }))}
                   language={language}
+                  coverImage={coverPreview || form.coverImage}
+                  blogs={blogs}
                   t={t}
                   value={form.content}
                 />

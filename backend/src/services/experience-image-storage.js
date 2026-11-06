@@ -1,6 +1,7 @@
 const { randomUUID } = require('node:crypto')
 const fs = require('node:fs/promises')
 const path = require('node:path')
+const { removeFromCloudinary, uploadToCloudinary } = require('./cloud-image-storage')
 
 const imageDirectory = path.resolve(
   process.env.EXPERIENCE_IMAGE_DIR || path.join(__dirname, '../../uploads/experiences'),
@@ -12,6 +13,8 @@ function extensionFor(mimeType) {
 }
 
 async function storeImage(file) {
+  const cloudUrl = await uploadToCloudinary(file, 'ahoban/experiences')
+  if (cloudUrl) return cloudUrl
   const extension = extensionFor(file.mimetype)
   if (!extension) throw new Error('Unsupported experience photo format.')
   await fs.mkdir(imageDirectory, { recursive: true })
@@ -32,6 +35,7 @@ async function storeImages(files) {
 }
 
 async function removeImage(imageUrl) {
+  if (await removeFromCloudinary(imageUrl, 'ahoban/experiences')) return
   const prefix = '/api/uploads/experiences/'
   if (typeof imageUrl !== 'string' || !imageUrl.startsWith(prefix)) return
   const filename = imageUrl.slice(prefix.length)
@@ -44,6 +48,8 @@ async function removeImages(imageUrls) {
 }
 
 async function storeAvatar(file) {
+  const cloudUrl = await uploadToCloudinary(file, 'ahoban/avatars')
+  if (cloudUrl) return cloudUrl
   await fs.mkdir(avatarDirectory, { recursive: true })
   const filename = `${randomUUID()}.webp`
   await fs.writeFile(path.join(avatarDirectory, filename), file.buffer, { flag: 'wx' })
@@ -51,6 +57,7 @@ async function storeAvatar(file) {
 }
 
 async function removeAvatar(imageUrl) {
+  if (await removeFromCloudinary(imageUrl, 'ahoban/avatars')) return
   const prefix = '/api/uploads/avatars/'
   if (typeof imageUrl !== 'string' || !imageUrl.startsWith(prefix)) return
   const filename = imageUrl.slice(prefix.length)

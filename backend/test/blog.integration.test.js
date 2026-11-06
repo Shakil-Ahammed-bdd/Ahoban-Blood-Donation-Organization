@@ -223,7 +223,7 @@ test('blog CRUD, publication visibility, validation, and admin role authorizatio
         slug: draft.slug,
         status: 'published',
         cover: false,
-        content: '<p>Updated <em>rich</em> content.</p><a href="javascript:alert(1)">unsafe link</a>',
+        content: '<p><span data-editor-comment="Check this source">Updated</span> <em>rich</em> content.</p><a href="javascript:alert(1)">unsafe link</a>',
       }),
     })
     assert.equal(publishedResponse.status, 200)
@@ -232,9 +232,12 @@ test('blog CRUD, publication visibility, validation, and admin role authorizatio
     assert.equal(publishedBlog.metaTitle, publishedBlog.title)
     assert.equal(publishedBlog.metaDescription, publishedBlog.shortDescription)
     assert.match(publishedBlog.content, /<em>rich<\/em>/)
+    assert.match(publishedBlog.content, /data-editor-comment="Check this source"/)
     assert.doesNotMatch(publishedBlog.content, /javascript:|alert\(/i)
     const publicRichBlog = await request(`/blogs/${draft.slug}`)
-    assert.match((await publicRichBlog.json()).blog.content, /<em>rich<\/em>/)
+    const publicContent = (await publicRichBlog.json()).blog.content
+    assert.match(publicContent, /<em>rich<\/em>/)
+    assert.doesNotMatch(publicContent, /data-editor-comment/)
     const publicResponse = await request('/blogs?category=Health%20Tips&search=guide')
     const publicResult = await publicResponse.json()
     assert.equal(publicResult.blogs.some(({ id }) => id === draft.id), true)

@@ -167,6 +167,9 @@ userSchema.pre('save', function normalizeRole() {
 
 
 userSchema.index({ isSearchable: 1, bloodGroup: 1, division: 1, district: 1 })
+userSchema.index({ isSearchable: 1, createdAt: -1, _id: -1 })
+userSchema.index({ bloodGroup: 1 })
+userSchema.index({ createdAt: 1 })
 userSchema.index(
   { role: 1 },
   {

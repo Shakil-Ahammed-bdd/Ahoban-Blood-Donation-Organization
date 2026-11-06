@@ -3,7 +3,8 @@
 :root {
   font-family: "Noto Sans Bengali", "Hind Siliguri", "Nirmala UI", sans-serif;
   color: #262320;
-  background: #fffdfa;
+  color-scheme: light;
+  background: #faf8f4;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,8 +16,11 @@
   --muted: #706a64;
   --red: #b93140;
   --red-dark: #922536;
-  --cream: #fffdfa;
-  --line: #eee8e1;
+  --cream: #faf8f4;
+  --line: #e9e3da;
+  --surface: #fffefa;
+  --surface-raised: #fff;
+  --shadow-card: 0 14px 36px rgb(62 44 31 / 8%);
 }
 
 * {
@@ -26,6 +30,7 @@
 body {
   min-height: 100vh;
   margin: 0;
+  background: #faf8f4;
 }
 
 body,
@@ -997,6 +1002,100 @@ a {
   margin: 5px 8px 8px;
   color: #ff737c;
   font-size: 12px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  outline: none;
+  background: rgb(236 38 51 / 12%);
+  color: var(--red-dark);
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.profile-menu .theme-toggle {
+  width: 100%;
+}
+
+.theme-mode-control {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.theme-mode-option {
+  display: flex;
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-raised);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.theme-mode-option svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.theme-mode-option:hover,
+.theme-mode-option:focus-visible {
+  border-color: var(--red);
+  outline: none;
+  color: var(--red-dark);
+}
+
+.theme-mode-option.is-active {
+  border-color: var(--red);
+  background: rgb(185 49 64 / 8%);
+  box-shadow: 0 0 0 2px rgb(185 49 64 / 8%);
+  color: var(--red-dark);
+}
+
+html.theme-transition body,
+html.theme-transition body * {
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease !important;
 }
 
 @keyframes profile-menu-enter {

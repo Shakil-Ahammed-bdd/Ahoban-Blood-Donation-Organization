@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DonorCard from './DonorCard'
 import Reveal from '../shared/Reveal'
@@ -6,46 +6,59 @@ import { donorApi } from '../../services/api/donorApi'
 import { useLanguage } from '../../contexts/useLanguage'
 import { translateErrorMessage } from '../../contexts/translationUtils'
 
-function fetchRecentDonors() {
-  return donorApi.list({ sort: 'recent', availability: 'all', page: 1, limit: 6 })
+function fetchRecentDonors(options) {
+  return donorApi.list({ sort: 'recent', availability: 'all', page: 1, limit: 6 }, options)
 }
 
 function RecentDonors() {
   const { t } = useLanguage()
+  const sectionRef = useRef(null)
   const [donors, setDonors] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const loadDonors = useCallback(async () => {
+  const loadDonors = useCallback(async (signal) => {
     setLoading(true)
     setError('')
     try {
-      const result = await fetchRecentDonors()
+      const result = await fetchRecentDonors(signal ? { signal } : undefined)
       setDonors(result.donors)
     } catch (requestError) {
-      setError(translateErrorMessage(requestError, t))
+      if (requestError.name !== 'AbortError') setError(translateErrorMessage(requestError, t))
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) setLoading(false)
     }
   }, [t])
 
   useEffect(() => {
-    let active = true
-    fetchRecentDonors().then(
-      (result) => {
-        if (active) setDonors(result.donors)
-      },
-      (requestError) => {
-        if (active) setError(translateErrorMessage(requestError, t))
-      },
-    ).finally(() => {
-      if (active) setLoading(false)
-    })
-    return () => { active = false }
-  }, [t])
+    const controller = new AbortController()
+    let requested = false
+    const loadWhenNeeded = () => {
+      if (requested) return
+      requested = true
+      void loadDonors(controller.signal)
+    }
+
+    if (!sectionRef.current || !('IntersectionObserver' in window)) {
+      loadWhenNeeded()
+      return () => controller.abort()
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      observer.disconnect()
+      loadWhenNeeded()
+    }, { rootMargin: '240px 0px' })
+    observer.observe(sectionRef.current)
+
+    return () => {
+      observer.disconnect()
+      controller.abort()
+    }
+  }, [loadDonors])
 
   return (
-    <section aria-labelledby="recent-donors-title" className="section recent-donors-section" id="recent-donors">
+    <section aria-labelledby="recent-donors-title" className="section recent-donors-section" id="recent-donors" ref={sectionRef}>
       <div className="section-container">
         <Reveal>
           <div className="recent-donors-heading">

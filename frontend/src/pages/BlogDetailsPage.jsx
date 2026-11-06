@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BlogCard from '../components/blog/BlogCard'
 import BlogContent from '../components/blog/BlogContent'
+import { responsiveImageProps } from '../utils/responsiveImage'
 import { blogApi } from '../services/api/blogApi'
 import { useLanguage } from '../contexts/useLanguage'
 
@@ -136,7 +137,7 @@ function BlogDetailsPage() {
             <span><strong>{blog.author}</strong><time dateTime={blog.publishAt}>{formatDate(blog.publishAt, language)}</time></span>
           </div>
         </header>
-        <img alt={blog.title} className="blog-article-cover" src={blog.coverImage} />
+        <img alt={blog.title} className="blog-article-cover" decoding="async" fetchPriority="high" {...responsiveImageProps(blog.coverImage, [640, 1000, 1440], '(max-width: 700px) 100vw, 1100px')} />
         <div className="blog-article-layout">
           <BlogContent content={blog.content} />
           <aside aria-label={t('ব্লগ শেয়ার করুন')} className="blog-share">

@@ -1601,6 +1601,11 @@
   height: 16px;
 }
 
+.admin-profile-dropdown .theme-toggle {
+  width: 100%;
+  font-size: 12px;
+}
+
 .admin-dashboard {
   display: grid;
   min-height: calc(100vh - 72px);
