@@ -9,6 +9,7 @@ process.env.JWT_SECRET ||= randomBytes(48).toString('base64url')
 
 const app = require('../src/app')
 const BloodRequest = require('../src/models/BloodRequest')
+const Notification = require('../src/models/Notification')
 const User = require('../src/models/User')
 const { seedSuperAdmin } = require('../src/services/auth.service')
 
@@ -25,7 +26,7 @@ function requestInput(overrides = {}) {
     patientName: 'Request Test Patient',
     patientIssue: 'Patient needs blood for a scheduled operation.',
     hospitalName: 'Central Medical Hospital',
-    hospitalLocation: 'Dhanmondi, Dhaka',
+    hospitalLocation: 'সাভার, ঢাকা',
     phone: '01712345678',
     bloodGroup: 'A+',
     units: '2',
@@ -45,6 +46,7 @@ test('public blood requests validate, publish, filter, close securely, and rate-
     })
     await mongoose.connect(isolatedDatabaseUri())
     await BloodRequest.init()
+    await Notification.init()
     await User.init()
     const baseUrl = `http://127.0.0.1:${server.address().port}`
 
@@ -74,6 +76,7 @@ test('public blood requests validate, publish, filter, close securely, and rate-
         password: 'a-secure-test-password',
         confirmPassword: 'a-secure-test-password',
         acceptTerms: true,
+        isSearchable: true,
       },
     })
     assert.equal(regularRegistration.status, 201)
@@ -129,7 +132,7 @@ test('public blood requests validate, publish, filter, close securely, and rate-
     const stored = await BloodRequest.findById(createdBody.request.id).select('+managementTokenHash')
     assert.notEqual(stored.managementTokenHash, createdBody.managementToken)
 
-    const hiddenPendingResponse = await request('/blood-requests?status=active&bloodGroup=A%2B&hospitalLocation=Dhanmondi')
+    const hiddenPendingResponse = await request(`/blood-requests?status=active&bloodGroup=A%2B&hospitalLocation=${encodeURIComponent('সাভার')}`)
     assert.equal((await hiddenPendingResponse.json()).pagination.total, 0)
     assert.equal((await request('/admins/blood-requests')).status, 401)
     assert.equal((await request('/admins/blood-requests', { cookie: regularCookie })).status, 403)
@@ -138,6 +141,8 @@ test('public blood requests validate, publish, filter, close securely, and rate-
     assert.equal(pendingResponse.status, 200)
     assert.equal(pendingBody.counts.pending, 1)
     assert.equal(pendingBody.requests[0].patientName, 'Request Test Patient')
+    const pendingNotifications = await request('/notifications', { cookie: regularCookie })
+    assert.equal((await pendingNotifications.json()).unreadCount, 0)
 
     const unauthorizedApproval = await request(`/admins/blood-requests/${createdBody.request.id}/moderate`, {
       method: 'PATCH',
@@ -154,7 +159,28 @@ test('public blood requests validate, publish, filter, close securely, and rate-
     assert.equal(approvedResponse.status, 200)
     assert.equal((await approvedResponse.json()).request.status, 'approved')
 
-    const filteredResponse = await request('/blood-requests?status=active&bloodGroup=A%2B&hospitalLocation=Dhanmondi')
+    const previewResponse = await request(`/admins/blood-requests/${createdBody.request.id}/matches`, { cookie: adminCookie })
+    const previewBody = await previewResponse.json()
+    assert.equal(previewResponse.status, 200)
+    assert.equal(previewBody.data.length, 1)
+    assert.equal(previewBody.data[0].matchLabel, 'same-upazila')
+    assert.equal(previewBody.data[0].bloodGroup, 'A+')
+    assert.equal(previewBody.data[0].isAvailableToDonate, true)
+
+    const notificationResponse = await request('/notifications', { cookie: regularCookie })
+    const notificationBody = await notificationResponse.json()
+    assert.equal(notificationResponse.status, 200)
+    assert.equal(notificationBody.unreadCount, 1)
+    assert.equal(notificationBody.notifications[0].payload.patientName, 'Request Test Patient')
+    const readResponse = await request(`/notifications/${notificationBody.notifications[0].id}/read`, {
+      method: 'PATCH',
+      cookie: regularCookie,
+    })
+    assert.equal(readResponse.status, 200)
+    const readNotifications = await request('/notifications', { cookie: regularCookie })
+    assert.equal((await readNotifications.json()).unreadCount, 0)
+
+    const filteredResponse = await request(`/blood-requests?status=active&bloodGroup=A%2B&hospitalLocation=${encodeURIComponent('সাভার')}`)
     const filteredBody = await filteredResponse.json()
     assert.equal(filteredResponse.status, 200)
     assert.equal(filteredBody.pagination.total, 1)

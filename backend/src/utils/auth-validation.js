@@ -170,6 +170,11 @@ function validateRegistration(body) {
   }
   const isSearchable = readBoolean(body?.isSearchable, 'isSearchable', fieldErrors)
   const isContactPublic = readBoolean(body?.isContactPublic, 'isContactPublic', fieldErrors)
+  const notificationPreferences = {
+    inAppEnabled: readBoolean(body?.notificationPreferences?.inAppEnabled, 'notificationPreferences.inAppEnabled', fieldErrors, true),
+    whatsappEnabled: readBoolean(body?.notificationPreferences?.whatsappEnabled, 'notificationPreferences.whatsappEnabled', fieldErrors, false),
+    whatsappConsent: readBoolean(body?.notificationPreferences?.whatsappConsent, 'notificationPreferences.whatsappConsent', fieldErrors, false),
+  }
   if (Object.keys(fieldErrors).length) validationError(fieldErrors)
 
   return {
@@ -177,6 +182,7 @@ function validateRegistration(body) {
     email,
     phone: phone.replace(/[\s-]/g, ''),
     whatsappNumber: whatsappNumber.replace(/[\s-]/g, ''),
+    notificationPreferences,
     bloodGroup,
     division,
     district,
@@ -235,6 +241,7 @@ const PROFILE_FIELDS = new Set([
   'fullName',
   'phone',
   'whatsappNumber',
+  'notificationPreferences',
   'bloodGroup',
   'division',
   'district',
@@ -264,6 +271,16 @@ function validateProfileUpdate(body, currentProfile) {
       input[field] = readBoolean(body[field], field, fieldErrors)
     } else if (COORDINATE_FIELDS.includes(field)) {
       continue
+    } else if (field === 'notificationPreferences') {
+      if (!body.notificationPreferences || typeof body.notificationPreferences !== 'object' || Array.isArray(body.notificationPreferences)) {
+        fieldErrors.notificationPreferences = 'Choose valid notification preferences.'
+        continue
+      }
+      input.notificationPreferences = {
+        inAppEnabled: readBoolean(body.notificationPreferences.inAppEnabled, 'notificationPreferences.inAppEnabled', fieldErrors, true),
+        whatsappEnabled: readBoolean(body.notificationPreferences.whatsappEnabled, 'notificationPreferences.whatsappEnabled', fieldErrors, false),
+        whatsappConsent: readBoolean(body.notificationPreferences.whatsappConsent, 'notificationPreferences.whatsappConsent', fieldErrors, false),
+      }
     } else if (field === 'whatsappNumber') {
       input[field] = readOptionalString(body, field, fieldErrors, { max: 16 }).replace(/[\s-]/g, '')
     } else if (field === 'upazila') {

@@ -11,6 +11,7 @@ const {
 const verifyOrigin = require('../middleware/verify-origin')
 const experienceController = require('../controllers/experience.controller')
 const bloodRequestController = require('../controllers/blood-request.controller')
+const notificationController = require('../controllers/notification.controller')
 
 const router = express.Router()
 
@@ -42,6 +43,13 @@ router.get(
   authenticate,
   requireRole('admin', 'super_admin'),
   bloodRequestController.listAdmin,
+)
+router.get(
+  '/blood-requests/:id/matches',
+  authenticate,
+  requireRole('admin', 'super_admin'),
+  verifyOrigin,
+  notificationController.previewMatches,
 )
 router.patch(
   '/blood-requests/:id/moderate',

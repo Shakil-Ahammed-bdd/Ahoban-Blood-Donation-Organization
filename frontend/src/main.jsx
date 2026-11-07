@@ -6,6 +6,7 @@ import './auth.css'
 import './admin.css'
 import './blog.css'
 import './blood-requests.css'
+import './notifications.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(

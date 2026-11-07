@@ -71,6 +71,20 @@ const userSchema = new mongoose.Schema(
       trim: true,
       maxlength: 16,
     },
+    notificationPreferences: {
+      inAppEnabled: {
+        type: Boolean,
+        default: true,
+      },
+      whatsappEnabled: {
+        type: Boolean,
+        default: false,
+      },
+      whatsappConsent: {
+        type: Boolean,
+        default: false,
+      },
+    },
     lastDonationDate: {
       type: Date,
       default: null,

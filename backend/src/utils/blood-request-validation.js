@@ -11,6 +11,7 @@ const ALLOWED_FIELDS = new Set([
   'bloodGroup',
   'units',
   'requiredAt',
+  'priority',
   'contactConsent',
   'website',
 ])
@@ -62,6 +63,10 @@ function validateBloodRequest(input) {
     fieldError('requiredAt', 'Choose a future date and time for the blood request.')
   }
 
+  const priority = typeof input.priority === 'string' && ['critical', 'high', 'medium', 'normal'].includes(input.priority)
+    ? input.priority
+    : 'normal'
+
   return {
     requesterName,
     patientName,
@@ -72,6 +77,7 @@ function validateBloodRequest(input) {
     bloodGroup: input.bloodGroup,
     units,
     requiredAt,
+    priority,
   }
 }
 

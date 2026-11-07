@@ -33,6 +33,11 @@ function toPublicUser(user) {
     email: user.email,
     phone: user.phone,
     whatsappNumber: user.whatsappNumber || '',
+    notificationPreferences: {
+      inAppEnabled: user.notificationPreferences?.inAppEnabled ?? true,
+      whatsappEnabled: user.notificationPreferences?.whatsappEnabled ?? false,
+      whatsappConsent: user.notificationPreferences?.whatsappConsent ?? false,
+    },
     bloodGroup: user.bloodGroup,
     division: user.division,
     district: user.district,
@@ -68,6 +73,11 @@ async function registerUser(input) {
   delete safeInput.role
   delete safeInput.isActive
   delete safeInput.permissions
+  const notificationPreferences = {
+    inAppEnabled: safeInput.notificationPreferences?.inAppEnabled ?? true,
+    whatsappEnabled: safeInput.notificationPreferences?.whatsappEnabled ?? false,
+    whatsappConsent: safeInput.notificationPreferences?.whatsappConsent ?? false,
+  }
   const passwordHash = await bcrypt.hash(safeInput.password, PASSWORD_ROUNDS)
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const user = new User({
@@ -75,6 +85,7 @@ async function registerUser(input) {
       email: safeInput.email.toLowerCase(),
       userId: buildUserId(),
       role: 'user',
+      notificationPreferences,
       passwordHash,
     })
 

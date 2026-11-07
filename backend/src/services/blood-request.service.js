@@ -2,6 +2,7 @@ const { createHash, randomBytes, timingSafeEqual } = require('node:crypto')
 const mongoose = require('mongoose')
 const BloodRequest = require('../models/BloodRequest')
 const HttpError = require('../errors/http-error')
+const { computeBloodRequestPriority, triggerApprovalNotifications } = require('./notification.service')
 const { validateBloodRequest } = require('../utils/blood-request-validation')
 
 function ensureDatabase() {
@@ -26,6 +27,7 @@ function serializeRequest(request) {
     bloodGroup: request.bloodGroup,
     units: request.units,
     requiredAt: request.requiredAt,
+    priority: request.priority || computeBloodRequestPriority(request),
     status,
     fulfillmentStatus: request.fulfillmentStatus
       || (legacyStatuses.includes(request.status) ? request.status : 'active'),
@@ -51,6 +53,7 @@ async function createRequest(input) {
   const managementToken = randomBytes(32).toString('hex')
   const request = await BloodRequest.create({
     ...values,
+    priority: values.priority || computeBloodRequestPriority(values),
     status: 'pending',
     fulfillmentStatus: 'active',
     managementTokenHash: hashToken(managementToken),
@@ -147,7 +150,7 @@ async function listAdminRequests({ page, limit, approvalStatus }) {
   }
 }
 
-async function moderateRequest(id, status) {
+async function moderateRequest(id, status, priority) {
   ensureDatabase()
   if (!mongoose.isValidObjectId(id)) {
     throw new HttpError(404, 'BLOOD_REQUEST_NOT_FOUND', 'The blood request could not be found.')
@@ -156,15 +159,18 @@ async function moderateRequest(id, status) {
     throw new HttpError(400, 'INVALID_BLOOD_REQUEST_STATUS', 'Select approved or rejected status.')
   }
   const legacyStatuses = ['active', 'fulfilled', 'expired', 'cancelled']
-  const existingRequest = await BloodRequest.findById(id).select('status')
+  const existingRequest = await BloodRequest.findById(id).select('status priority')
   if (!existingRequest) throw new HttpError(404, 'BLOOD_REQUEST_NOT_FOUND', 'The blood request could not be found.')
   if (!['pending', ...legacyStatuses].includes(existingRequest.status)) {
     throw new HttpError(409, 'BLOOD_REQUEST_ALREADY_REVIEWED', 'This blood request has already been reviewed.')
   }
   const previousStatus = existingRequest.status
+  const normalizedPriority = ['critical', 'high', 'medium', 'normal'].includes(priority)
+    ? priority
+    : existingRequest.priority || computeBloodRequestPriority(existingRequest)
   const request = await BloodRequest.findOneAndUpdate(
     { _id: id, status: { $in: ['pending', ...legacyStatuses] } },
-    { $set: { status } },
+    { $set: { status, priority: normalizedPriority } },
     { returnDocument: 'after', runValidators: true },
   )
   if (!request) {
@@ -180,6 +186,9 @@ async function moderateRequest(id, status) {
   }
   if (legacyStatuses.includes(previousStatus) || (status === 'approved' && request.requiredAt <= new Date())) {
     await request.save()
+  }
+  if (status === 'approved') {
+    await triggerApprovalNotifications(request)
   }
   return serializeRequest(request)
 }

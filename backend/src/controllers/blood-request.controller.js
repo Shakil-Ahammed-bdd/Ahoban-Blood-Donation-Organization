@@ -83,16 +83,16 @@ async function listAdmin(req, res, next) {
 
 async function moderate(req, res, next) {
   try {
-    const { approvalStatus } = req.body || {}
+    const { approvalStatus, priority } = req.body || {}
     if (
       !req.body
       || typeof req.body !== 'object'
       || Array.isArray(req.body)
-      || Object.keys(req.body).some((field) => field !== 'approvalStatus')
+      || Object.keys(req.body).some((field) => !['approvalStatus', 'priority'].includes(field))
     ) {
       throw new HttpError(400, 'INVALID_BLOOD_REQUEST_STATUS', 'Provide a valid approval status.')
     }
-    const request = await bloodRequestService.moderateRequest(req.params.id, approvalStatus)
+    const request = await bloodRequestService.moderateRequest(req.params.id, approvalStatus, priority)
     res.json({ success: true, status: 'ok', message: `Blood request ${approvalStatus}.`, data: { request }, request })
   } catch (error) {
     next(error)

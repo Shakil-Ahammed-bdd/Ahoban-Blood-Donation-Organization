@@ -12,6 +12,8 @@ export const adminApi = {
     apiRequest(`/admins/experiences/${encodeURIComponent(id)}/reject`, { method: 'PATCH' }),
   bloodRequests: ({ page = 1, limit = 20, status = 'pending' } = {}) =>
     apiRequest(`/admins/blood-requests?page=${page}&limit=${limit}&status=${encodeURIComponent(status)}`),
+  bloodRequestMatches: (id) =>
+    apiRequest(`/admins/blood-requests/${encodeURIComponent(id)}/matches`),
   moderateBloodRequest: (id, approvalStatus) =>
     apiRequest(`/admins/blood-requests/${encodeURIComponent(id)}/moderate`, {
       method: 'PATCH',

@@ -16,6 +16,7 @@ import { LanguageProvider } from './contexts/LanguageProvider'
 import BlogPage from './pages/BlogPage'
 import BlogDetailsPage from './pages/BlogDetailsPage'
 import BloodRequestsPage from './pages/BloodRequestsPage'
+import NotificationsPage from './pages/NotificationsPage'
 import ThemeProvider from './contexts/ThemeProvider'
 
 function LandingPage() {
@@ -112,6 +113,7 @@ function App() {
               </Route>
               <Route element={<ProtectedRoute />}>
                 <Route element={<UserProfileRoute />} path="/profile" />
+                <Route element={<BlogRoute><NotificationsPage /></BlogRoute>} path="/notifications" />
                 <Route element={<Navigate replace to="/profile" />} path="/dashboard" />
               </Route>
               <Route element={<Navigate replace to="/" />} path="*" />

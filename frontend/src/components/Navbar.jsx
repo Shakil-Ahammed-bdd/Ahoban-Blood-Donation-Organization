@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/useAuth'
 import { useLanguage } from '../contexts/useLanguage'
 import { translateErrorMessage } from '../contexts/translationUtils'
 import { scrollToSection } from '../utils/scrollToSection'
+import NotificationBell from './NotificationBell'
 
 const links = [
   { label: 'হোম', href: '#home' },
@@ -140,6 +141,8 @@ function Navbar() {
             {language === 'bn' ? 'English' : 'বাংলা'}
           </button>
           {authenticated ? (
+            <>
+            <NotificationBell />
             <div className="nav-profile" ref={profileRef}>
               <button
                 aria-controls="profile-menu"
@@ -185,6 +188,7 @@ function Navbar() {
                 </div>
               )}
             </div>
+            </>
           ) : status === 'unauthenticated' ? (
             <div className="nav-guest-actions">
               <Link className="nav-login-link" to="/login">{t('লগ ইন')}</Link>

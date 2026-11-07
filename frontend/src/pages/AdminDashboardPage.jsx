@@ -86,6 +86,7 @@ function AdminDashboardPage() {
   const [bloodRequestLoading, setBloodRequestLoading] = useState(false)
   const [bloodRequestError, setBloodRequestError] = useState('')
   const [viewedBloodRequestId, setViewedBloodRequestId] = useState('')
+  const [matchPreview, setMatchPreview] = useState({ requestId: '', donors: [], loading: false, error: '' })
   const [selectedStat, setSelectedStat] = useState('')
   const [viewedRecordId, setViewedRecordId] = useState('')
   const [detailsPage, setDetailsPage] = useState(1)
@@ -376,6 +377,7 @@ function AdminDashboardPage() {
     try {
       await adminApi.moderateBloodRequest(request.id, approvalStatus)
       setViewedBloodRequestId('')
+      setMatchPreview({ requestId: '', donors: [], loading: false, error: '' })
       setNotice(approvalStatus === 'approved'
         ? t('রক্তের আবেদনটি অনুমোদন করা হয়েছে।')
         : t('রক্তের আবেদনটি প্রত্যাখ্যান করা হয়েছে।'))
@@ -385,6 +387,26 @@ function AdminDashboardPage() {
       setError(requestError.message || t('রক্তের আবেদনের অবস্থা হালনাগাদ করা যায়নি।'))
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function previewBloodRequestMatches(request) {
+    setMatchPreview({ requestId: request.id, donors: [], loading: true, error: '' })
+    try {
+      const response = await adminApi.bloodRequestMatches(request.id)
+      setMatchPreview({
+        requestId: request.id,
+        donors: response.data || [],
+        loading: false,
+        error: '',
+      })
+    } catch (requestError) {
+      setMatchPreview({
+        requestId: request.id,
+        donors: [],
+        loading: false,
+        error: requestError.message || t('ম্যাচিং দাতা লোড করা যায়নি।'),
+      })
     }
   }
 
@@ -568,6 +590,21 @@ function AdminDashboardPage() {
                 </div>
               ))}
             </section>
+            <button
+              className="admin-emergency-summary-card"
+              onClick={() => openSection('bloodRequests')}
+              type="button"
+            >
+              <span className="admin-emergency-summary-icon"><PortalIcon name="heart" /></span>
+              <span className="admin-emergency-summary-copy">
+                <strong>{t('জরুরি রক্তের Notification')}</strong>
+                <small>{t('অপেক্ষমাণ আবেদন')}</small>
+              </span>
+              <strong className="admin-emergency-summary-count">{dashboard.bloodRequestCounts.pending}</strong>
+              <span className="admin-emergency-summary-status">
+                {t('বর্তমান API-তে WhatsApp delivery statistics বা configuration status পাওয়া যায় না।')}
+              </span>
+            </button>
             <section aria-labelledby="admin-features-title" className="admin-feature-section">
               <div className="admin-feature-heading">
                 <div><span className="admin-eyebrow">{t('দ্রুত প্রবেশ')}</span><h2 id="admin-features-title">{t('ব্যবস্থাপনা')}</h2></div>
@@ -748,6 +785,7 @@ function AdminDashboardPage() {
                 <div><dt>{t('প্রয়োজনীয় রক্ত')}</dt><dd>{viewedBloodRequest.units} {t('ব্যাগ')}</dd></div>
                 <div><dt>{t('রক্ত প্রয়োজনের তারিখ ও সময়')}</dt><dd>{formatDateTime(viewedBloodRequest.requiredAt, language)}</dd></div>
                 <div><dt>{t('আবেদনের তারিখ')}</dt><dd>{formatDateTime(viewedBloodRequest.createdAt, language)}</dd></div>
+                <div><dt>{t('জরুরিতার মাত্রা')}</dt><dd><span className={`notification-priority is-${viewedBloodRequest.priority || 'normal'}`}>{t(({ critical: 'জরুরি', high: 'উচ্চ', medium: 'মাঝারি', normal: 'স্বাভাবিক' })[viewedBloodRequest.priority] || 'স্বাভাবিক')}</span></dd></div>
                 <div><dt>{t('আবেদনের অবস্থা')}</dt><dd>{t({
                   active: 'সক্রিয়',
                   fulfilled: 'রক্ত পাওয়া গেছে',
@@ -755,6 +793,61 @@ function AdminDashboardPage() {
                   cancelled: 'বাতিল',
                 }[viewedBloodRequest.fulfillmentStatus] || viewedBloodRequest.fulfillmentStatus)}</dd></div>
               </dl>
+              {viewedBloodRequest.status === 'pending' && (
+                <section aria-label={t('ম্যাচিং দাতা প্রিভিউ')} className="admin-match-preview">
+                  <div className="admin-match-preview-heading">
+                    <div>
+                      <strong>{t('ম্যাচিং দাতা প্রিভিউ')}</strong>
+                      {matchPreview.requestId === viewedBloodRequest.id && !matchPreview.loading && !matchPreview.error
+                        && <small>{matchPreview.donors.length} {t('জন দাতা')}</small>}
+                    </div>
+                    <button className="admin-secondary-button" disabled={matchPreview.loading} onClick={() => void previewBloodRequestMatches(viewedBloodRequest)} type="button">
+                      {matchPreview.loading ? t('লোড হচ্ছে…') : t('ম্যাচিং দাতা দেখুন')}
+                    </button>
+                  </div>
+                  {matchPreview.requestId === viewedBloodRequest.id && matchPreview.error && (
+                    <p className="admin-feedback is-error" role="alert">{matchPreview.error}</p>
+                  )}
+                  {matchPreview.requestId === viewedBloodRequest.id && matchPreview.loading && (
+                    <p className="admin-feedback" role="status">{t('ম্যাচিং দাতা লোড হচ্ছে…')}</p>
+                  )}
+                  {matchPreview.requestId === viewedBloodRequest.id && !matchPreview.loading && !matchPreview.error && matchPreview.donors.length === 0 && (
+                    <p className="admin-feedback">{t('কোনো প্রস্তুত ও নোটিফিকেশন-সক্রিয় matching donor পাওয়া যায়নি।')}</p>
+                  )}
+                  {matchPreview.requestId === viewedBloodRequest.id && matchPreview.donors.length > 0 && (
+                    <ul className="admin-match-donor-list">
+                      {matchPreview.donors.map((donor) => (
+                        <li className="admin-match-donor-card" key={donor.donorId}>
+                          <span className="admin-match-donor-avatar">
+                            {donor.profilePhotoUrl
+                              ? <img alt="" src={donor.profilePhotoUrl} />
+                              : donor.fullName?.trim().split(/\s+/).slice(0, 2).map((part) => Array.from(part)[0]).join('')}
+                          </span>
+                          <div className="admin-match-donor-main">
+                            <strong>{donor.fullName}</strong>
+                            <small>{donor.userId} · {donor.bloodGroup}</small>
+                            <span>{[donor.division, donor.district, donor.upazila].filter(Boolean).join(' · ') || donor.donorLocation || '—'}</span>
+                          </div>
+                          <div className="admin-match-donor-meta">
+                            <span>{t(({
+                              'same-upazila': 'একই উপজেলা',
+                              'same-district': 'একই জেলা',
+                              'same-division': 'একই বিভাগ',
+                              'other-area': 'অন্যান্য এলাকা',
+                            })[donor.matchLabel] || 'অন্যান্য এলাকা')}</span>
+                            <small>{donor.isAvailableToDonate ? t('রক্তদানে প্রস্তুত') : t('প্রস্তুত নন')}</small>
+                            <small>{donor.whatsappEligible ? t('WhatsApp consent আছে') : t('WhatsApp consent নেই')}</small>
+                            {donor.whatsappNumber && <a href={`tel:${donor.whatsappNumber}`}>{donor.whatsappNumber}</a>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="admin-match-preview-note">
+                    {t('বর্তমান API-তে WhatsApp delivery status বা retry সুবিধা পাওয়া যায় না।')}
+                  </p>
+                </section>
+              )}
               <div className="admin-blood-request-actions">
                 {viewedBloodRequest.status === 'pending' && (
                   <>

@@ -36,6 +36,105 @@ HttpOnly cookies.
   explicit 401 still transitions to unauthenticated; existing logout behavior
   continues to clear the server cookie.
 
+## JWT Authentication: implementation and lifecycle
+
+The API uses a signed JSON Web Token (JWT) as a server-managed browser session.
+The browser does not receive a token in JSON and frontend code does not read,
+write, or store the token in `localStorage` or `sessionStorage`.
+
+### Sign-in and registration
+
+1. `POST /api/auth/register` validates the submitted donor/profile fields and
+   terms acceptance. The server assigns a random `AHB-...` User ID and always
+   assigns the `user` role; submitted role or account-status values cannot
+   grant privileges. `POST /api/auth/login` accepts an email address or User ID.
+2. Both operations verify the account through the authentication service.
+   Passwords are hashed with `bcryptjs` using 12 salt rounds; the plain password
+   is never saved. Login compares the submitted password with the stored hash.
+   Inactive accounts are denied.
+3. On success, the server signs a JWT with `jsonwebtoken` using **HS256**. The
+   payload contains the MongoDB user ID in `sub`; the token also has the
+   configured issuer (`ahoban-api`), audience (`ahoban-web`), and a seven-day
+   expiry.
+4. The JWT is sent only as the `ahoban_session` cookie. It is HttpOnly, scoped
+   to `/api`, and has a seven-day browser max age. In production the cookie is
+   `Secure; SameSite=None` for the cross-site Netlify-to-Render deployment;
+   local development uses `SameSite=Lax` and does not require HTTPS.
+
+### Authenticated requests and authorization
+
+- Frontend `apiRequest` uses `credentials: 'include'` for API calls, so the
+  browser sends the cookie automatically. Do not add a bearer-token header or
+  expose the cookie to JavaScript.
+- The `authenticate` middleware requires a connected MongoDB database, reads
+  the cookie, and verifies the signature, HS256 algorithm, issuer, audience,
+  expiry, and string `sub`. It then fetches the current user from MongoDB and
+  rejects deleted or inactive accounts. Requests with no valid session receive
+  HTTP 401; disabled accounts receive HTTP 403; unavailable auth/database
+  configuration returns a service error rather than authenticating a user.
+- Authorization is checked separately from authentication. `requireRole`
+  protects Admin/Super Admin routes, and `requireSuperAdmin` restricts
+  sensitive Admin account management. A client-supplied role is never
+  authoritative.
+- `POST /api/auth/logout` clears the cookie with matching path/security options.
+  Deleting the account also clears it. There is no refresh-token endpoint or
+  server-side token-revocation list: logout removes the browser's cookie, but a
+  previously copied JWT could remain cryptographically valid until expiry.
+  Account deletion or deactivation is also checked against MongoDB on each
+  authenticated request.
+
+### Current-user restoration in the frontend
+
+- At application startup, `AuthProvider` requests `GET /api/auth/me`. The UI
+  distinguishes `loading`, `authenticated`, `unauthenticated`, and request
+  `error` states; it does not treat an initial loading state as signed out.
+- A 401 from `/me` clears the in-memory user state. A temporary non-401 failure
+  preserves an already authenticated in-memory user; if there is no user yet,
+  the provider reports an error. `refresh()` can request the current user
+  again.
+- Successful login and registration set the safe returned user in memory.
+  Logout and account deletion clear that state after the server operation
+  succeeds. The JWT and password hash are excluded from user API responses.
+
+### JWT configuration and operational requirements
+
+- Set `JWT_SECRET` in the **backend/root environment**, never in a frontend
+  `VITE_*` variable. Use a unique random value of at least 32 bytes. The server
+  refuses startup if the secret is missing, too short, or resembles the
+  example placeholder; auth middleware also fails closed if it is not valid.
+- Generate a suitable secret locally:
+
+  ```powershell
+  node -e "process.stdout.write(require('node:crypto').randomBytes(48).toString('base64url'))"
+  ```
+
+- Put the generated value only in the ignored root `.env` for local work, or in
+  the backend host's secret environment configuration for deployment. Never
+  commit a real `.env`, paste the value into source control, or put it in
+  Netlify/frontend configuration. `.env.example` contains a placeholder only.
+- CORS allows credentialed requests only from `CLIENT_URL`. Authentication
+  mutations also use the existing origin validation and login/registration
+  attempts are rate-limited (15 attempts per 15 minutes by the current
+  Express rate limiter).
+- The implementation lives in `backend/src/middleware/authenticate.js`,
+  `backend/src/controllers/auth.controller.js`,
+  `backend/src/services/auth.service.js`, and
+  `backend/src/routes/auth.routes.js`. Frontend session state and credentialed
+  requests live in `frontend/src/contexts/AuthProvider.jsx`,
+  `frontend/src/services/api/authApi.js`, and
+  `frontend/src/services/api/apiRequest.js`.
+
+### JWT change-documentation rule
+
+Whenever future work changes JWT/session behavior, update this README in the
+same change. Review and amend this section, the environment/configuration
+instructions, the auth API endpoint table, security limitations, and the
+authentication tests as applicable. In particular, document changes to
+signing algorithm or claims, cookie name/options/lifetime, secret requirements,
+login/logout/refresh/revocation behavior, frontend session restoration, and
+role/authorization rules. Do not document a feature as implemented until its
+code and tests are in place.
+
 ## Navigation
 
 - The Navbar's **ব্লগ** link opens the dedicated `/blog` route; blog articles

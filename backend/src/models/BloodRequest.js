@@ -21,6 +21,12 @@ const bloodRequestSchema = new mongoose.Schema(
       default: 'pending',
       index: true,
     },
+    priority: {
+      type: String,
+      enum: ['critical', 'high', 'medium', 'normal'],
+      default: 'normal',
+      index: true,
+    },
     fulfillmentStatus: {
       type: String,
       enum: ['active', 'fulfilled', 'expired', 'cancelled'],
