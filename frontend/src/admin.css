@@ -2134,6 +2134,7 @@
   .admin-sidebar {
     z-index: 40;
     width: min(290px, calc(100vw - 56px));
+    padding-bottom: calc(var(--mobile-bottom-navigation-height) + 20px + env(safe-area-inset-bottom, 0px));
     transform: translateX(-105%);
   }
 
