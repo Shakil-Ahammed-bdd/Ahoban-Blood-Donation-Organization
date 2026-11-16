@@ -168,11 +168,11 @@ body {
   color: #ff515b;
 }
 
-.hero-copy h1 {
+.hero-copy h2 {
   color: #f6f6f8;
 }
 
-.hero-copy h1 span {
+.hero-copy h2 span {
   color: #f33440;
 }
 
@@ -203,51 +203,6 @@ body {
 .note-dot,
 .hero-bottom-rule {
   background-color: #ec2633;
-}
-
-.art-orbit {
-  border-color: rgb(248 248 250 / 9%);
-}
-
-.art-orbit-two {
-  border-color: rgb(236 38 51 / 22%);
-}
-
-.art-sun {
-  background:
-    radial-gradient(circle at 50% 48%, rgb(190 30 47 / 24%), rgb(115 23 39 / 11%) 58%, transparent 72%);
-  box-shadow: none;
-}
-
-.donation-illustration {
-  filter: drop-shadow(0 22px 30px rgb(0 0 0 / 34%));
-}
-
-.art-caption {
-  border-color: #30323d;
-  background: rgb(20 22 30 / 96%);
-  box-shadow: 0 16px 38px rgb(0 0 0 / 34%);
-}
-
-.caption-heart {
-  background: rgb(236 38 51 / 15%);
-  color: #ff515b;
-}
-
-.art-caption strong {
-  color: #f4f4f5;
-}
-
-.art-caption small {
-  color: #aaaab3;
-}
-
-.art-spark {
-  color: #e34a55;
-}
-
-.art-spark-two {
-  color: #a77d84;
 }
 
 .section {
