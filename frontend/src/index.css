@@ -1195,45 +1195,54 @@ html.theme-transition body * {
   }
 
   .site-header .nav-shell {
-    width: calc(100% - 24px);
-    min-height: 62px;
-    gap: 0;
+    width: calc(100% - 16px);
+    min-height: 58px;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 4px;
   }
 
   .site-header .brand {
+    flex: 1 1 0;
     min-width: 0;
-    max-width: calc(100% - 66px);
-    gap: 6px;
+    max-width: none;
+    gap: 4px;
   }
 
   .site-header .brand.is-guest {
-    max-width: calc(100% - 180px);
+    max-width: none;
   }
 
   .site-header .brand-mark {
-    width: 34px;
-    height: 34px;
-    flex-basis: 34px;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
     border-radius: 12px;
   }
 
   .site-header .brand-name {
     display: grid;
     min-width: 0;
+    flex: 1 1 auto;
     gap: 1px;
-    font-size: 12px;
+    font-size: clamp(8px, 2.65vw, 11px);
     line-height: 1.25;
   }
 
   .site-header .brand-name span {
     color: var(--ink);
-    font-size: 12px;
+    font-size: inherit;
     line-height: inherit;
+    white-space: nowrap;
   }
 
   .site-header .brand-name span:first-child {
     color: var(--red);
-    font-size: 14px;
+    font-size: clamp(9px, 3vw, 13px);
+  }
+
+  .site-header .brand-name span:last-child {
+    overflow-wrap: normal;
   }
 
   .site-header .primary-nav,
@@ -1242,36 +1251,45 @@ html.theme-transition body * {
   }
 
   .site-header .nav-account {
-    position: absolute;
-    top: 50%;
-    right: 0;
+    position: static;
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
-    gap: 6px;
-    transform: translateY(-50%);
+    gap: 3px;
+    transform: none;
+    white-space: nowrap;
   }
 
   .site-header .nav-account.is-guest {
-    gap: 4px;
+    gap: 3px;
   }
 
   .site-header .nav-account.is-guest .nav-guest-actions {
-    gap: 4px;
+    gap: 2px;
   }
 
   .site-header .nav-account.is-guest .nav-login-link,
   .site-header .nav-account.is-guest .nav-register-link {
-    min-height: 34px;
-    padding-inline: 7px;
-    font-size: 11px;
+    min-height: 32px;
+    padding-inline: 4px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .site-header .nav-account .nav-theme-toggle {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+    flex-basis: 30px;
   }
 
   .site-header .nav-language-toggle {
-    min-width: 32px;
+    min-width: 29px;
     min-height: 30px;
-    padding-inline: 5px;
+    padding-inline: 3px;
     border-radius: 10px;
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .notification-bell {
@@ -1560,40 +1578,48 @@ html.theme-transition body * {
 
 @media (max-width: 360px) {
   .site-header .nav-shell {
-    width: calc(100% - 20px);
-    min-height: 0;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding-block: 8px;
+    width: calc(100% - 12px);
+    min-height: 54px;
+    flex-wrap: nowrap;
+    gap: 3px;
+    padding-block: 4px;
   }
 
   .site-header .brand,
   .site-header .brand.is-guest {
-    flex: 0 0 100%;
-    max-width: 100%;
-    gap: 5px;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+    gap: 3px;
   }
 
   .site-header .nav-account {
-    position: relative;
-    top: auto;
-    right: auto;
-    margin-left: auto;
-    transform: none;
+    flex: 0 0 auto;
+    gap: 2px;
   }
 
   .site-header .brand-mark {
-    width: 32px;
-    height: 32px;
-    flex-basis: 32px;
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
   }
 
   .site-header .brand-name,
   .site-header .brand-name span {
-    font-size: 11px;
+    font-size: clamp(8px, 2.65vw, 9.5px);
   }
 
   .site-header .brand-name span:first-child {
-    font-size: 13px;
+    font-size: clamp(9px, 3vw, 10.5px);
+  }
+
+  .site-header .nav-account.is-guest {
+    gap: 2px;
+  }
+
+  .site-header .nav-account.is-guest .nav-login-link,
+  .site-header .nav-account.is-guest .nav-register-link {
+    padding-inline: 3px;
+    font-size: 8px;
   }
 }
