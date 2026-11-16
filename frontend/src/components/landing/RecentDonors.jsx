@@ -5,6 +5,7 @@ import Reveal from '../shared/Reveal'
 import { donorApi } from '../../services/api/donorApi'
 import { useLanguage } from '../../contexts/useLanguage'
 import { translateErrorMessage } from '../../contexts/translationUtils'
+import { subscribeToDonorDataChanges } from '../../services/donorDataEvents'
 
 function fetchRecentDonors(options) {
   return donorApi.list({ sort: 'recent', availability: 'all', page: 1, limit: 6 }, options)
@@ -13,11 +14,13 @@ function fetchRecentDonors(options) {
 function RecentDonors() {
   const { t } = useLanguage()
   const sectionRef = useRef(null)
+  const hasLoadedRef = useRef(false)
   const [donors, setDonors] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const loadDonors = useCallback(async (signal) => {
+    hasLoadedRef.current = true
     setLoading(true)
     setError('')
     try {
@@ -29,6 +32,10 @@ function RecentDonors() {
       if (!signal?.aborted) setLoading(false)
     }
   }, [t])
+
+  useEffect(() => subscribeToDonorDataChanges(() => {
+    if (hasLoadedRef.current) void loadDonors()
+  }), [loadDonors])
 
   useEffect(() => {
     const controller = new AbortController()

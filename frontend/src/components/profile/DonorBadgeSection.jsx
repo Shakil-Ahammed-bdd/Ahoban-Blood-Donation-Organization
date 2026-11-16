@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react'
 import { useLanguage } from '../../contexts/useLanguage'
 
 const BADGE_ICONS = {
@@ -13,6 +14,8 @@ function DonorBadgeSection({
   dateError,
   dateValue,
   donorBadge,
+  deletingId,
+  onDelete,
   onDateChange,
   onSubmit,
   saving,
@@ -40,6 +43,7 @@ function DonorBadgeSection({
           {t('নিচের ক্যালেন্ডার থেকে আপনার সর্বশেষ রক্তদানের তারিখ নির্বাচন করুন:')}
         </label>
         <input
+          disabled={saving || Boolean(deletingId)}
           id="profile-donation-date"
           max={todayDate}
           onChange={onDateChange}
@@ -48,7 +52,11 @@ function DonorBadgeSection({
           value={dateValue}
         />
         {dateError && <p className="donation-date-error" role="alert">{dateError}</p>}
-        <button className="button button-primary" disabled={saving} type="submit">
+        <button
+          className="button button-primary"
+          disabled={saving || Boolean(deletingId)}
+          type="submit"
+        >
           {saving ? t('রক্তদানের তারিখ হালনাগাদ হচ্ছে…') : `🩸 ${t('রক্তদানের তারিখ হালনাগাদ করুন')}`}
         </button>
       </form>
@@ -57,7 +65,7 @@ function DonorBadgeSection({
           {BADGE_ICONS[badge.badgeLevel] || BADGE_ICONS.none}
         </span>
         <div className="donor-badge-copy">
-          <strong>{badge.badge}</strong>
+          <strong>{t(badge.badge)}</strong>
           <span>{badge.totalDonations} {t('আজীবন')} {t('দান')}</span>
           <span className="donor-badge-count-breakdown">
             {badge.previousBloodDonations || 0} {t('যোগদানের আগে')} + {badge.loggedDonationCount || 0} {t('এখানে নথিভুক্ত')}
@@ -68,7 +76,15 @@ function DonorBadgeSection({
         <div className="donor-badge-progress-label">
           <span>
             {badge.nextBadge
-              ? `${badge.donationsToNextBadge} ${t('আরও দানে')} ${t(badge.nextBadge)} ${t('পৌঁছান')}`
+              ? t(
+                  badge.donationsToNextBadge === 1
+                    ? 'পরবর্তী ব্যাজ পেতে আরও একটি রক্তদান করুন: {badge}'
+                    : 'পরবর্তী ব্যাজ পেতে আরও {count}টি রক্তদান করুন: {badge}',
+                  {
+                    badge: t(badge.nextBadge),
+                    count: badge.donationsToNextBadge,
+                  },
+                )
               : t('সর্বোচ্চ দাতা ব্যাজ অর্জিত')}
           </span>
           <span>{badge.progressPercentage}%</span>
@@ -94,6 +110,24 @@ function DonorBadgeSection({
                 <time dateTime={item.date}>
                   {new Intl.DateTimeFormat('en-CA', { timeZone: 'UTC' }).format(new Date(item.date))}
                 </time>
+                {item.id && (
+                  <button
+                    aria-label={`${t('রক্তদানের রেকর্ড মুছুন')} ${item.date}`}
+                    className="donation-history-delete"
+                    disabled={Boolean(deletingId) || saving}
+                    onClick={() => onDelete(item)}
+                    type="button"
+                  >
+                    {deletingId === item.id ? (
+                      t('মুছে ফেলা হচ্ছে…')
+                    ) : (
+                      <>
+                        <Trash2 aria-hidden="true" size={16} />
+                        <span>{t('মুছুন')}</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </li>
             ))}
           </ul>

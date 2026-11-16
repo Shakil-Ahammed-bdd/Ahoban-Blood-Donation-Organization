@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DonorCard from '../components/landing/DonorCard'
 import { donorApi } from '../services/api/donorApi'
 import { useLanguage } from '../contexts/useLanguage'
 import { translateErrorMessage } from '../contexts/translationUtils'
+import { subscribeToDonorDataChanges } from '../services/donorDataEvents'
 
 function fetchDonorPage(requestedPage) {
   return donorApi.list({
@@ -20,32 +21,39 @@ function DonorsPage() {
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const requestVersion = useRef(0)
 
   const loadPage = useCallback(async (requestedPage) => {
+    const version = ++requestVersion.current
     setPage(requestedPage)
     setLoading(true)
     setError('')
     try {
       const response = await fetchDonorPage(requestedPage)
-      setResult(response)
+      if (version === requestVersion.current) setResult(response)
     } catch (requestError) {
-      setError(translateErrorMessage(requestError, t))
+      if (version === requestVersion.current) setError(translateErrorMessage(requestError, t))
     } finally {
-      setLoading(false)
+      if (version === requestVersion.current) setLoading(false)
     }
   }, [t])
 
+  useEffect(() => subscribeToDonorDataChanges(() => {
+    void loadPage(page)
+  }), [loadPage, page])
+
   useEffect(() => {
     let active = true
+    const version = ++requestVersion.current
     fetchDonorPage(1).then(
       (response) => {
-        if (active) setResult(response)
+        if (active && version === requestVersion.current) setResult(response)
       },
       (requestError) => {
-        if (active) setError(translateErrorMessage(requestError, t))
+        if (active && version === requestVersion.current) setError(translateErrorMessage(requestError, t))
       },
     ).finally(() => {
-      if (active) setLoading(false)
+      if (active && version === requestVersion.current) setLoading(false)
     })
     return () => { active = false }
   }, [t])

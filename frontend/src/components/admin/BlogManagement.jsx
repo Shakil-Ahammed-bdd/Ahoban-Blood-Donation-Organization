@@ -68,7 +68,6 @@ function BlogManagement() {
   const [loadedKey, setLoadedKey] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
   const [preview, setPreview] = useState(false)
   const [blogToolsExpanded, setBlogToolsExpanded] = useState(false)
   const [refreshVersion, setRefreshVersion] = useState(0)
@@ -145,7 +144,6 @@ function BlogManagement() {
     setSlugTouched(true)
     setPreview(false)
     setError('')
-    setNotice('')
     document.getElementById('blog-management-form')?.scrollIntoView({ behavior: 'smooth' })
   }
 
@@ -171,7 +169,6 @@ function BlogManagement() {
     const selectedStatus = event.nativeEvent.submitter?.value || form.status
     setSaving(true)
     setError('')
-    setNotice('')
     const data = new FormData()
     for (const [key, value] of Object.entries({ ...form, status: selectedStatus })) {
       if (key === 'coverImage' && !value) continue
@@ -181,10 +178,8 @@ function BlogManagement() {
     try {
       if (editingId) {
         await adminBlogApi.update(editingId, data)
-        setNotice(t('ব্লগ হালনাগাদ হয়েছে।'))
       } else {
         await adminBlogApi.create(data)
-        setNotice(t('ব্লগ তৈরি হয়েছে।'))
       }
       resetForm()
       setRefreshVersion((version) => version + 1)
@@ -198,10 +193,8 @@ function BlogManagement() {
   async function deleteBlog(blog) {
     if (!window.confirm(t('আপনি কি এই ব্লগটি মুছে ফেলতে নিশ্চিত?'))) return
     setError('')
-    setNotice('')
     try {
       await adminBlogApi.delete(blog.id)
-      setNotice(t('ব্লগ মুছে ফেলা হয়েছে।'))
       setRefreshVersion((version) => version + 1)
     } catch (requestError) {
       setError(requestError.message || t('ব্লগ মুছে ফেলা যায়নি।'))
@@ -211,7 +204,6 @@ function BlogManagement() {
   async function saveCategory(event) {
     event.preventDefault()
     setError('')
-    setNotice('')
     try {
       if (editingCategoryId) {
         await adminBlogApi.updateCategory(editingCategoryId, {
@@ -219,14 +211,12 @@ function BlogManagement() {
           description: editingCategoryDescription,
           active: editingCategoryActive,
         })
-        setNotice(t('ব্লগ বিভাগ হালনাগাদ হয়েছে।'))
       } else {
         await adminBlogApi.createCategory({
           name: categoryName,
           description: categoryDescription,
           active: categoryActive,
         })
-        setNotice(t('ব্লগ বিভাগ যোগ হয়েছে।'))
       }
       setCategoryName('')
       setCategoryDescription('')
@@ -244,7 +234,6 @@ function BlogManagement() {
   async function deleteCategory(category) {
     if (!window.confirm(t('আপনি কি এই ব্লগ বিভাগটি মুছে ফেলতে নিশ্চিত?'))) return
     setError('')
-    setNotice('')
     setDeletingCategoryId(category.id)
     try {
       await adminBlogApi.deleteCategory(category.id)
@@ -256,7 +245,6 @@ function BlogManagement() {
         setEditingCategoryDescription('')
         setEditingCategoryActive(true)
       }
-      setNotice(t('ব্লগ বিভাগ মুছে ফেলা হয়েছে।'))
     } catch (requestError) {
       if (requestError.code === 'BLOG_CATEGORY_IN_USE') {
         setError(t('এই বিভাগটি বিদ্যমান ব্লগ পোস্টে ব্যবহৃত হচ্ছে, তাই মুছে ফেলা যাবে না।'))
@@ -273,10 +261,8 @@ function BlogManagement() {
 
   async function toggleCategoryStatus(category) {
     setError('')
-    setNotice('')
     try {
       await adminBlogApi.updateCategory(category.id, { active: !category.active })
-      setNotice(t(category.active ? 'ব্লগ বিভাগ নিষ্ক্রিয় করা হয়েছে।' : 'ব্লগ বিভাগ সক্রিয় করা হয়েছে।'))
       setRefreshVersion((version) => version + 1)
     } catch (requestError) {
       setError(requestError.message || t('ব্লগ বিভাগের অবস্থা হালনাগাদ করা যায়নি।'))
@@ -290,7 +276,6 @@ function BlogManagement() {
         <span>{pagination?.total ?? blogs.length} {t('টি ব্লগ')}</span>
       </div>
       {error && <p className="admin-feedback is-error" role="alert">{t(error)}</p>}
-      {notice && <p className="admin-feedback is-success" role="status">{t(notice)}</p>}
 
       <section aria-labelledby="admin-blog-categories-title" className="admin-blog-categories" id="admin-blog-categories">
         <h3 id="admin-blog-categories-title">{t('ব্লগ বিভাগ পরিচালনা')}</h3>

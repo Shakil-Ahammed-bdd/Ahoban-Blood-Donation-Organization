@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/useLanguage'
 import { translateErrorMessage } from '../../contexts/translationUtils'
 import { leaderboardApi } from '../../services/api/leaderboardApi'
 import { responsiveImageProps } from '../../utils/responsiveImage'
+import { subscribeToDonorDataChanges } from '../../services/donorDataEvents'
 
 const RANK_CATEGORIES = {
   1: { label: 'গোল্ড', medal: '🥇', className: 'gold' },
@@ -39,6 +40,11 @@ function DonorIdentity({ donor }) {
 function DonorLeaderboard() {
   const { t } = useLanguage()
   const [state, setState] = useState({ donors: [], loading: true, error: '' })
+  const [donorDataRevision, setDonorDataRevision] = useState(0)
+
+  useEffect(() => subscribeToDonorDataChanges(() => {
+    setDonorDataRevision((revision) => revision + 1)
+  }), [])
 
   useEffect(() => {
     let active = true
@@ -51,7 +57,7 @@ function DonorLeaderboard() {
       },
     )
     return () => { active = false }
-  }, [t])
+  }, [donorDataRevision, t])
 
   return (
     <section aria-labelledby="donor-leaderboard-title" className="section leaderboard-section top-donors-section">

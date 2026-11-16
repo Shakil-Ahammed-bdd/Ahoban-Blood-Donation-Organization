@@ -4,3 +4,7 @@
 
 [build.environment]
   RENDER_API_URL = "https://ahoban-blood-donation-organization.onrender.com"
+
+[[edge_functions]]
+  function = "donor-profile-og"
+  path = "/donors/*"

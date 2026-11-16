@@ -4,7 +4,7 @@ import { authApi } from '../services/api/authApi'
 import { profileApi } from '../services/api/profileApi'
 
 export function AuthProvider({ children }) {
-  const [state, setState] = useState({ status: 'loading', user: null, error: null, notice: null })
+  const [state, setState] = useState({ status: 'loading', user: null, error: null })
   const requestVersion = useRef(0)
 
   const refresh = useCallback(async () => {
@@ -88,7 +88,6 @@ export function AuthProvider({ children }) {
         status: 'unauthenticated',
         user: null,
         error: null,
-        notice: 'আপনি সফলভাবে লগ আউট করেছেন।',
       })
     }
   }, [])
@@ -101,7 +100,6 @@ export function AuthProvider({ children }) {
         status: 'unauthenticated',
         user: null,
         error: null,
-        notice: 'আপনার অ্যাকাউন্ট সফলভাবে মুছে ফেলা হয়েছে।',
       })
     }
   }, [])
@@ -110,13 +108,9 @@ export function AuthProvider({ children }) {
     setState((current) => ({ ...current, status: 'authenticated', user, error: null }))
   }, [])
 
-  const clearNotice = useCallback(() => {
-    setState((current) => ({ ...current, notice: null }))
-  }, [])
-
   const value = useMemo(
-    () => ({ ...state, clearNotice, deleteAccount, login, logout, refresh, register, updateUser }),
-    [state, clearNotice, deleteAccount, login, logout, refresh, register, updateUser],
+    () => ({ ...state, deleteAccount, login, logout, refresh, register, updateUser }),
+    [state, deleteAccount, login, logout, refresh, register, updateUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

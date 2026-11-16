@@ -56,6 +56,10 @@ app.use(
     maxAge: '1y',
   }),
 )
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
 app.use('/api/auth', authRoutes)
 app.use('/api/admins', adminRoutes)
 app.use('/api/admins/blogs', adminBlogRoutes)

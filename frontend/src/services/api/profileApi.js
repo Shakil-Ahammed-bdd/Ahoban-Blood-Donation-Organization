@@ -9,6 +9,10 @@ export const profileApi = {
       method: 'POST',
       body: { donationDate },
     }),
+  deleteDonationDate: (recordId) =>
+    apiRequest(`/users/profile/donation-history/${encodeURIComponent(recordId)}`, {
+      method: 'DELETE',
+    }),
   updatePhoto: (formData) =>
     apiRequest('/users/profile/photo', { method: 'PUT', body: formData }),
   delete: () => apiRequest('/users/profile', { method: 'DELETE' }),

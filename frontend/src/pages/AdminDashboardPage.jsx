@@ -7,6 +7,7 @@ import { experienceApi } from '../services/api/experienceApi'
 import { useLanguage } from '../contexts/useLanguage'
 import BlogManagement from '../components/admin/BlogManagement'
 import ThemeToggle from '../components/ThemeToggle'
+import { subscribeToDonorDataChanges } from '../services/donorDataEvents'
 
 const EMPTY_DASHBOARD = {
   overview: null,
@@ -74,7 +75,6 @@ function AdminDashboardPage() {
   const [dashboard, setDashboard] = useState(EMPTY_DASHBOARD)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
   const [refreshVersion, setRefreshVersion] = useState(0)
   const [saving, setSaving] = useState(false)
   const [pendingPage, setPendingPage] = useState(1)
@@ -96,6 +96,10 @@ function AdminDashboardPage() {
   const [editForm, setEditForm] = useState({ fullName: '', phone: '', role: 'admin' })
   const [newAdmin, setNewAdmin] = useState({ fullName: '', email: '', phone: '', password: '' })
   const detailRequestPage = ['users', 'donors', 'stories'].includes(selectedStat) ? detailsPage : 1
+
+  useEffect(() => subscribeToDonorDataChanges(() => {
+    setRefreshVersion((version) => version + 1)
+  }), [])
 
   useEffect(() => {
     let active = true
@@ -245,7 +249,7 @@ function AdminDashboardPage() {
   async function handleLogout() {
     try {
       await logout()
-      navigate('/', { replace: true, state: { notice: t('আপনি সফলভাবে লগ আউট করেছেন।') } })
+      navigate('/', { replace: true })
     } catch (requestError) {
       setError(requestError.message || t('লগ আউট করা যায়নি।'))
     }
@@ -265,11 +269,9 @@ function AdminDashboardPage() {
     event.preventDefault()
     setSaving(true)
     setError('')
-    setNotice('')
     try {
       await adminApi.create(newAdmin)
       setNewAdmin({ fullName: '', email: '', phone: '', password: '' })
-      setNotice('Admin account created.')
       refreshDashboard()
     } catch (requestError) {
       setError(requestError.message || 'The admin account could not be created.')
@@ -282,18 +284,15 @@ function AdminDashboardPage() {
     setEditingId(admin.id)
     setEditForm({ fullName: admin.fullName, phone: admin.phone, role: admin.role })
     setError('')
-    setNotice('')
   }
 
   async function updateAdmin(event) {
     event.preventDefault()
     setSaving(true)
     setError('')
-    setNotice('')
     try {
       await adminApi.update(editingId, editForm)
       setEditingId('')
-      setNotice('Admin account updated.')
       refreshDashboard()
     } catch (requestError) {
       setError(requestError.message || 'The admin account could not be updated.')
@@ -305,10 +304,8 @@ function AdminDashboardPage() {
   async function toggleAdmin(admin) {
     setSaving(true)
     setError('')
-    setNotice('')
     try {
       await adminApi.update(admin.id, { isActive: !admin.isActive })
-      setNotice(`Admin account ${admin.isActive ? 'deactivated' : 'activated'}.`)
       refreshDashboard()
     } catch (requestError) {
       setError(requestError.message || 'The admin status could not be changed.')
@@ -321,10 +318,8 @@ function AdminDashboardPage() {
     if (!window.confirm(`Permanently delete the admin account for ${admin.fullName}?`)) return
     setSaving(true)
     setError('')
-    setNotice('')
     try {
       await adminApi.delete(admin.id)
-      setNotice('Admin account deleted.')
       refreshDashboard()
     } catch (requestError) {
       setError(requestError.message || 'The admin account could not be deleted.')
@@ -337,14 +332,11 @@ function AdminDashboardPage() {
     if (action === 'reject' && !window.confirm(t('আপনি কি এই অনুভূতিটি প্রত্যাখ্যান করতে নিশ্চিত?'))) return
     setSaving(true)
     setError('')
-    setNotice('')
     try {
       if (action === 'approve') {
         await adminApi.approveExperience(experience.id)
-        setNotice(t('অনুভূতিটি অনুমোদন করা হয়েছে।'))
       } else {
         await adminApi.rejectExperience(experience.id)
-        setNotice(t('অনুভূতিটি প্রত্যাখ্যান করা হয়েছে।'))
       }
       setDashboard((current) => {
         const total = Math.max(0, (current.pendingPagination?.total ?? current.pendingExperiences.length) - 1)
@@ -373,14 +365,10 @@ function AdminDashboardPage() {
     ) return
     setSaving(true)
     setError('')
-    setNotice('')
     try {
       await adminApi.moderateBloodRequest(request.id, approvalStatus)
       setViewedBloodRequestId('')
       setMatchPreview({ requestId: '', donors: [], loading: false, error: '' })
-      setNotice(approvalStatus === 'approved'
-        ? t('রক্তের আবেদনটি অনুমোদন করা হয়েছে।')
-        : t('রক্তের আবেদনটি প্রত্যাখ্যান করা হয়েছে।'))
       setBloodRequestLoading(true)
       setRefreshVersion((current) => current + 1)
     } catch (requestError) {
@@ -414,11 +402,9 @@ function AdminDashboardPage() {
     if (!window.confirm(t('আপনি কি নিশ্চিত যে প্রয়োজনীয় রক্ত পাওয়া গেছে?'))) return
     setSaving(true)
     setError('')
-    setNotice('')
     try {
       await adminApi.fulfillBloodRequest(request.id)
       setViewedBloodRequestId('')
-      setNotice(t('রক্তের আবেদনটি পূরণ হয়েছে হিসেবে চিহ্নিত করা হয়েছে।'))
       setBloodRequestLoading(true)
       setRefreshVersion((current) => current + 1)
     } catch (requestError) {
@@ -530,17 +516,18 @@ function AdminDashboardPage() {
             <span /><span /><span />
           </button>
           <div className="admin-topbar-spacer" />
+          <button aria-label={t('অভিজ্ঞতা অনুমোদন খুলুন')} className="admin-notification-button" onClick={() => openSection('approval')} type="button">
+            <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+            {(dashboard.pendingPagination?.total ?? 0) > 0 && <span>{dashboard.pendingPagination.total}</span>}
+          </button>
+          <ThemeToggle className="admin-theme-toggle" />
           <button
             aria-label={language === 'bn' ? 'Switch language to English' : 'ভাষা বাংলায় পরিবর্তন করুন'}
             className="admin-language-toggle"
             onClick={toggleLanguage}
             type="button"
           >
-            {language === 'bn' ? 'English' : 'বাংলা'}
-          </button>
-          <button aria-label={t('অভিজ্ঞতা অনুমোদন খুলুন')} className="admin-notification-button" onClick={() => openSection('approval')} type="button">
-            <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
-            {(dashboard.pendingPagination?.total ?? 0) > 0 && <span>{dashboard.pendingPagination.total}</span>}
+            {language === 'bn' ? 'BN' : 'EN'}
           </button>
           <details className="admin-profile-menu">
             <summary>
@@ -552,7 +539,6 @@ function AdminDashboardPage() {
               <Link to="/profile">
                 <PortalIcon name="user" />{t('প্রোফাইল')}
               </Link>
-              <ThemeToggle className="admin-theme-toggle" />
               <button onClick={handleLogout} type="button">
                 <PortalIcon name="settings" />{t('লগ আউট')}
               </button>
@@ -562,7 +548,6 @@ function AdminDashboardPage() {
 
       <main className="admin-dashboard">
         {error && <p className="admin-feedback is-error" role="alert">{error}</p>}
-        {notice && <p className="admin-feedback is-success" role="status">{notice}</p>}
         {loading && <p className="admin-feedback" role="status">{t('লোড হচ্ছে…')}</p>}
 
         {!selectedStat ? (
@@ -976,7 +961,9 @@ function AdminDashboardPage() {
                   ['অবস্থান', [viewedRecord.location, viewedRecord.upazila, viewedRecord.district, viewedRecord.division].filter(Boolean).join(', ')],
                   ['নিবন্ধনের তারিখ', formatDate(viewedRecord.createdAt, language)],
                   ['অ্যাকাউন্টের অবস্থা', t(viewedRecordStatus)],
-                  ['মোট রক্তদান', viewedRecord.previousBloodDonations ?? viewedRecord.donationCount],
+                  ['মোট রক্তদান', selectedStat === 'donors'
+                    ? viewedRecord.donorBadge?.totalDonations ?? viewedRecord.previousBloodDonations
+                    : viewedRecord.previousBloodDonations ?? viewedRecord.donationCount],
                   ['সদস্য হওয়ার তারিখ', formatDate(viewedRecord.createdAt, language)],
                   ['সর্বশেষ রক্তদান', formatDate(viewedRecord.lastDonationDate || viewedRecord.donationDate, language)],
                 ].map(([label, value]) => (

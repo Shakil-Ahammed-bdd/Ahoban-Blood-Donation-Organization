@@ -630,6 +630,7 @@
   border-radius: 20px;
   background: #fff;
   box-shadow: 0 16px 40px rgb(75 48 35 / 7%);
+  font-size: clamp(15px, 1.9vw, 16px);
 }
 
 .public-donor-profile-heading {
@@ -638,22 +639,65 @@
   gap: 17px;
 }
 
+.public-donor-profile-heading > div {
+  min-width: 0;
+}
+
+.public-donor-profile-heading .public-donor-avatar {
+  display: grid;
+  width: 96px;
+  height: 96px;
+  flex-basis: 96px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.public-donor-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
 .public-donor-profile-heading h1 {
   margin: 3px 0;
   color: #29241f;
-  font-size: clamp(23px, 5vw, 30px);
-  line-height: 1.4;
+  font-size: clamp(27px, 5.8vw, 34px);
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .public-donor-profile-heading p {
-  margin: 3px 0 8px;
+  margin: 4px 0 9px;
   color: #827970;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.public-donor-profile-heading .section-kicker {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.public-donor-profile-heading .donor-badge-compact,
+.public-donor-profile-heading .donor-availability {
   font-size: 12px;
+  line-height: 1.5;
 }
 
 .public-donor-profile > .donor-group-banner {
   margin-top: 22px;
+}
+
+.public-donor-profile > .donor-group-banner strong {
+  font-size: 26px;
+}
+
+.public-donor-profile > .donor-group-banner span {
+  font-size: 12px;
 }
 
 .public-donor-profile .donor-card-details > div {
@@ -662,11 +706,13 @@
 }
 
 .public-donor-profile .donor-card-details dt {
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .public-donor-profile .donor-card-details dd {
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 .public-donor-profile .donor-contact-actions {
@@ -675,7 +721,7 @@
 
 .public-donor-profile .donor-contact-button {
   min-height: 44px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .public-donor-privacy {
@@ -685,8 +731,84 @@
   border-radius: 10px;
   background: #fff8f7;
   color: #7d5554;
-  font-size: 12px;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.public-donor-share {
+  margin: 0 0 18px;
+}
+
+.public-donor-share-trigger {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 15px;
+  border: 1px solid #e8c9c4;
+  border-radius: 11px;
+  background: #fff4f2;
+  color: #a92130;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 750;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.public-donor-share-trigger:hover {
+  transform: translateY(-1px);
+  border-color: #dbaaa4;
+  background: #ffebe8;
+}
+
+.public-donor-share-trigger:focus-visible,
+.public-donor-share-option:focus-visible {
+  outline: 2px solid #b93140;
+  outline-offset: 2px;
+}
+
+.public-donor-share-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.public-donor-share-option {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid #e9e3da;
+  border-radius: 9px;
+  background: #fffefa;
+  color: #39332e;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.public-donor-share-option:hover {
+  border-color: #d8c6ba;
+  background: #faf8f4;
+}
+
+.public-donor-share-url {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 3px;
+  color: #706a64;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 @keyframes donor-skeleton-pulse {
@@ -1080,6 +1202,35 @@
 }
 
 @media (max-width: 700px) {
+  .public-donor-profile {
+    padding: 20px;
+  }
+
+  .public-donor-profile-heading {
+    align-items: flex-start;
+    gap: 13px;
+  }
+
+  .public-donor-profile-heading .public-donor-avatar {
+    width: 80px;
+    height: 80px;
+    flex-basis: 80px;
+  }
+
+  .public-donor-share-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .public-donor-share-option {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+
+  .public-donor-share-url {
+    grid-column: 1 / -1;
+  }
+
   .section {
     padding: 68px 0;
     scroll-margin-top: 104px;
@@ -1123,7 +1274,7 @@
   }
 
   .recent-view-all {
-    margin-left: 60px;
+    margin-left: 0;
   }
 
   .recent-donors-grid {
@@ -2855,6 +3006,42 @@
 .donor-badge-history li time {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.donation-history-delete {
+  display: inline-flex;
+  min-height: 36px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 6px 10px;
+  border: 1px solid rgb(255 89 98 / 35%);
+  border-radius: 9px;
+  background: rgb(255 89 98 / 9%);
+  color: #ff9aa1;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  scroll-margin-block: 100px 130px;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.donation-history-delete:hover:not(:disabled) {
+  border-color: #ff737d;
+  background: rgb(255 89 98 / 18%);
+}
+
+.donation-history-delete:focus-visible {
+  outline: 2px solid #ff737d;
+  outline-offset: 2px;
+}
+
+.donation-history-delete:disabled {
+  cursor: wait;
+  opacity: .65;
 }
 
 .donor-badge-history li > span:last-child:not(:first-child) {

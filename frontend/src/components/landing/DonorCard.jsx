@@ -62,7 +62,7 @@ function DonorCard({ donor }) {
           </div>
           <div>
             <DonorDetailIcon name="donation" />
-            <span><dt>{t('পূর্ববর্তী রক্তদান')}</dt><dd>{donor.previousBloodDonations ?? 0} {t('বার')}</dd></span>
+            <span><dt>{t('মোট রক্তদান')}</dt><dd>{donor.donorBadge?.totalDonations ?? donor.previousBloodDonations ?? 0} {t('বার')}</dd></span>
           </div>
           {registeredAt && (
             <div>

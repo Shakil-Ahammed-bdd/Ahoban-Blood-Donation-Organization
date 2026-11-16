@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import DonorCard from './DonorCard'
 import Reveal from '../shared/Reveal'
 import SectionHeading from '../shared/SectionHeading'
@@ -7,10 +7,13 @@ import { bangladeshDivisions, bangladeshLocations } from '../../utils/bangladesh
 import bangladeshUpazilas from '../../utils/bangladeshUpazilas'
 import { useLanguage } from '../../contexts/useLanguage'
 import { translateErrorMessage } from '../../contexts/translationUtils'
+import { subscribeToDonorDataChanges } from '../../services/donorDataEvents'
+import { useNotifications } from '../../contexts/useNotifications'
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
 function BloodSearch() {
   const { t } = useLanguage()
+  const { notify } = useNotifications()
   const [bloodGroup, setBloodGroup] = useState('')
   const [division, setDivision] = useState('')
   const [district, setDistrict] = useState('')
@@ -21,9 +24,11 @@ function BloodSearch() {
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const searchRequestVersion = useRef(0)
 
-  async function searchDonors(nextPage = 1, event) {
+  const searchDonors = useCallback(async (nextPage = 1, event, announce = false) => {
     event?.preventDefault()
+    const requestVersion = ++searchRequestVersion.current
     setLoading(true)
     setError('')
     setPage(nextPage)
@@ -38,18 +43,42 @@ function BloodSearch() {
         page: nextPage,
         limit: 6,
       })
-      setResult(response)
+      if (requestVersion === searchRequestVersion.current) {
+        setResult(response)
+        if (announce) {
+          notify({
+            type: 'info',
+            title: 'তথ্য',
+            message: response.pagination.total
+              ? 'অনুসন্ধানে {count} জন দাতা পাওয়া গেছে।'.replace('{count}', String(response.pagination.total))
+              : 'অনুসন্ধানে কোনো দাতা পাওয়া যায়নি।',
+          })
+        }
+      }
     } catch (requestError) {
-      setError(translateErrorMessage(requestError, t))
-      setResult(null)
+      if (requestVersion === searchRequestVersion.current) {
+        setError(translateErrorMessage(requestError, t))
+        setResult(null)
+        if (announce) {
+          notify({
+            type: 'error',
+            title: 'ত্রুটি',
+            message: translateErrorMessage(requestError, t),
+          })
+        }
+      }
     } finally {
-      setLoading(false)
+      if (requestVersion === searchRequestVersion.current) setLoading(false)
     }
-  }
+  }, [availability, bloodGroup, district, division, location, notify, t, upazila])
+
+  useEffect(() => subscribeToDonorDataChanges(() => {
+    if (result) void searchDonors(page)
+  }), [page, result, searchDonors])
 
   function handleSubmit(event) {
     event.preventDefault()
-    void searchDonors(1)
+    void searchDonors(1, undefined, true)
   }
 
   return (

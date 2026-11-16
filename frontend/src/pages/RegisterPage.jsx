@@ -9,6 +9,7 @@ import bangladeshUpazilas from '../utils/bangladeshUpazilas'
 import { requestCurrentCoordinates } from '../utils/currentLocation'
 import { useLanguage } from '../contexts/useLanguage'
 import { translateErrorMessage } from '../contexts/translationUtils'
+import { notifyMutationFailure } from '../services/notificationEvents'
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 const todayDate = new Date().toISOString().slice(0, 10)
@@ -136,7 +137,10 @@ function RegisterPage() {
     event.preventDefault()
     const errors = validate()
     setFieldErrors(errors)
-    if (Object.keys(errors).length) return
+    if (Object.keys(errors).length) {
+      notifyMutationFailure('চিহ্নিত তথ্যগুলো যাচাই করে আবার চেষ্টা করুন।', 'warning')
+      return
+    }
 
     setLoading(true)
     setError('')
@@ -153,11 +157,8 @@ function RegisterPage() {
       formData.append('confirmPassword', values.confirmPassword)
       formData.append('acceptTerms', String(values.acceptTerms))
       if (photo) formData.append('photo', photo)
-      const user = await register(formData)
-      navigate('/', {
-        replace: true,
-        state: { notice: `নিবন্ধন সফল হয়েছে। আপনার User ID: ${user.userId}` },
-      })
+      await register(formData)
+      navigate('/', { replace: true })
     } catch (requestError) {
       setError(translateErrorMessage(requestError, t))
       setFieldErrors(Object.fromEntries(Object.entries(requestError.fieldErrors || {}).map(([key, message]) => [key, t(message)])))

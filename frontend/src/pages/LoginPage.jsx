@@ -5,6 +5,7 @@ import AuthLayout from '../components/auth/AuthLayout'
 import { useAuth } from '../contexts/useAuth'
 import { useLanguage } from '../contexts/useLanguage'
 import { translateErrorMessage } from '../contexts/translationUtils'
+import { notifyMutationFailure } from '../services/notificationEvents'
 
 function LoginPage() {
   const { t } = useLanguage()
@@ -23,16 +24,16 @@ function LoginPage() {
     if (!identifier.trim()) errors.identifier = 'ইমেইল বা User ID লিখুন।'
     if (!password) errors.password = 'পাসওয়ার্ড লিখুন।'
     setFieldErrors(errors)
-    if (Object.keys(errors).length) return
+    if (Object.keys(errors).length) {
+      notifyMutationFailure('তথ্যগুলো যাচাই করে আবার চেষ্টা করুন।', 'warning')
+      return
+    }
 
     setLoading(true)
     setError('')
     try {
       await login({ identifier: identifier.trim(), password })
-      navigate('/', {
-        replace: true,
-        state: { notice: 'লগ ইন সফল হয়েছে। স্বাগতম!' },
-      })
+      navigate('/', { replace: true })
     } catch (requestError) {
       setError(translateErrorMessage(requestError, t))
       setFieldErrors(requestError.fieldErrors || {})

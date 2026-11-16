@@ -2,6 +2,7 @@ const { clearSession } = require('../middleware/authenticate')
 const HttpError = require('../errors/http-error')
 const {
   deleteProfile,
+  deleteDonationDate,
   getProfile,
   getPublicProfile,
   logDonationDate,
@@ -68,6 +69,15 @@ async function addDonationDate(req, res, next) {
   }
 }
 
+async function removeDonationDate(req, res, next) {
+  try {
+    const user = await deleteDonationDate(req.user.id, req.params.recordId)
+    res.json({ status: 'ok', message: 'Donation record deleted.', user })
+  } catch (error) {
+    next(error)
+  }
+}
+
 async function editProfilePhoto(req, res, next) {
   try {
     const user = await updateProfilePhoto(req.user.id, req.file)
@@ -89,6 +99,7 @@ async function removeProfile(req, res, next) {
 
 module.exports = {
   addDonationDate,
+  removeDonationDate,
   editProfile,
   editProfilePhoto,
   readProfile,

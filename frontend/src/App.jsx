@@ -18,6 +18,7 @@ import BlogDetailsPage from './pages/BlogDetailsPage'
 import BloodRequestsPage from './pages/BloodRequestsPage'
 import NotificationsPage from './pages/NotificationsPage'
 import ThemeProvider from './contexts/ThemeProvider'
+import { NotificationProvider } from './contexts/NotificationProvider'
 
 function LandingPage() {
   return (
@@ -91,35 +92,48 @@ function UserProfileRoute() {
   )
 }
 
+function AdminRoute() {
+  return (
+    <>
+      <div className="admin-mobile-navigation">
+        <Navbar />
+      </div>
+      <AdminDashboardPage />
+    </>
+  )
+}
+
 function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route element={<LandingPage />} path="/" />
-              <Route element={<AuthenticationRoute><RegisterPage /></AuthenticationRoute>} path="/register" />
-              <Route element={<AuthenticationRoute><LoginPage /></AuthenticationRoute>} path="/login" />
-              <Route element={<DonorDirectoryRoute />} path="/donors" />
-              <Route element={<DonorProfileRoute />} path="/donors/:id" />
-              <Route element={<DonorExperiencesRoute />} path="/donor-experiences" />
-              <Route element={<BlogRoute><BloodRequestsPage /></BlogRoute>} path="/blood-requests" />
-              <Route element={<BlogRoute><BlogPage /></BlogRoute>} path="/blog" />
-              <Route element={<BlogRoute><BlogDetailsPage /></BlogRoute>} path="/blog/:slug" />
-              <Route element={<TopDonorsRoute />} path="/top-donors" />
-              <Route element={<ProtectedRoute roles={['admin', 'super_admin']} />}>
-                <Route element={<AdminDashboardPage />} path="/admin" />
-              </Route>
-              <Route element={<ProtectedRoute />}>
-                <Route element={<UserProfileRoute />} path="/profile" />
-                <Route element={<BlogRoute><NotificationsPage /></BlogRoute>} path="/notifications" />
-                <Route element={<Navigate replace to="/profile" />} path="/dashboard" />
-              </Route>
-              <Route element={<Navigate replace to="/" />} path="*" />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route element={<LandingPage />} path="/" />
+                <Route element={<AuthenticationRoute><RegisterPage /></AuthenticationRoute>} path="/register" />
+                <Route element={<AuthenticationRoute><LoginPage /></AuthenticationRoute>} path="/login" />
+                <Route element={<DonorDirectoryRoute />} path="/donors" />
+                <Route element={<DonorProfileRoute />} path="/donors/:id" />
+                <Route element={<DonorExperiencesRoute />} path="/donor-experiences" />
+                <Route element={<BlogRoute><BloodRequestsPage /></BlogRoute>} path="/blood-requests" />
+                <Route element={<BlogRoute><BlogPage /></BlogRoute>} path="/blog" />
+                <Route element={<BlogRoute><BlogDetailsPage /></BlogRoute>} path="/blog/:slug" />
+                <Route element={<TopDonorsRoute />} path="/top-donors" />
+                <Route element={<ProtectedRoute roles={['admin', 'super_admin']} />}>
+                  <Route element={<AdminRoute />} path="/admin" />
+                </Route>
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<UserProfileRoute />} path="/profile" />
+                  <Route element={<BlogRoute><NotificationsPage /></BlogRoute>} path="/notifications" />
+                  <Route element={<Navigate replace to="/profile" />} path="/dashboard" />
+                </Route>
+                <Route element={<Navigate replace to="/" />} path="*" />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </NotificationProvider>
       </LanguageProvider>
     </ThemeProvider>
   )

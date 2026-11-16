@@ -1,0 +1,126 @@
+.global-notifications {
+  position: fixed;
+  z-index: 2000;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  display: grid;
+  width: min(26rem, calc(100vw - 2rem));
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.global-notification {
+  --notification-color: #2563eb;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: var(--ink, #172033);
+  background: var(--surface-raised, #fff);
+  border: 1px solid color-mix(in srgb, var(--notification-color) 25%, var(--line, white));
+  border-left: 4px solid var(--notification-color);
+  border-radius: 0.9rem;
+  box-shadow: var(--shadow-card, 0 14px 40px rgb(15 23 42 / 18%));
+  pointer-events: auto;
+  animation: notification-enter 220ms ease-out both;
+}
+
+.global-notification-success {
+  --notification-color: #16834b;
+}
+
+.global-notification-error {
+  --notification-color: #d32f3f;
+}
+
+.global-notification-warning {
+  --notification-color: #c17a08;
+}
+
+.global-notification-info {
+  --notification-color: #2563eb;
+}
+
+.global-notification-icon {
+  margin-top: 0.1rem;
+  color: var(--notification-color);
+}
+
+.global-notification-copy {
+  min-width: 0;
+}
+
+.global-notification-copy strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.global-notification-copy p {
+  margin: 0;
+  color: var(--muted, #526071);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.global-notification-close {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  padding: 0;
+  color: var(--muted, #64748b);
+  background: transparent;
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.global-notification-close:hover {
+  color: var(--ink, #172033);
+  background: var(--surface, #f1f5f9);
+}
+
+@keyframes notification-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(1rem, -0.5rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes notification-exit {
+  to {
+    opacity: 0;
+    transform: translate3d(1rem, -0.5rem, 0);
+  }
+}
+
+.global-notification-exiting {
+  animation: notification-exit 180ms ease-in both;
+}
+
+@media (max-width: 640px) {
+  .global-notifications {
+    top: calc(env(safe-area-inset-top) + 0.5rem);
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+  }
+
+  .global-notification {
+    padding: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-notification {
+    animation: none;
+  }
+}

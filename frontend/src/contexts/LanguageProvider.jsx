@@ -4,6 +4,54 @@ import LanguageContext from './LanguageContext'
 const STORAGE_KEY = 'language'
 
 const englishTranslations = {
+  'সফল': 'Success',
+  'ত্রুটি': 'Error',
+  'সতর্কতা': 'Warning',
+  'তথ্য': 'Information',
+  'পপআপ নোটিফিকেশন': 'Popup notifications',
+  'নোটিফিকেশন বন্ধ করুন': 'Dismiss notification',
+  'দুঃখিত, কাজটি সম্পন্ন করা যায়নি।': 'Sorry, the operation could not be completed.',
+  'সার্ভারে সমস্যার কারণে কাজটি সম্পন্ন করা যায়নি। পরে আবার চেষ্টা করুন।': 'A server problem prevented the operation. Please try again later.',
+  'নেটওয়ার্ক সংযোগ পাওয়া যাচ্ছে না। ইন্টারনেট যাচাই করে আবার চেষ্টা করুন।': 'Network connection failed. Check your internet connection and try again.',
+  'পরিবর্তন সফলভাবে সংরক্ষিত হয়েছে।': 'Changes saved successfully.',
+  'নিবন্ধন সফল হয়েছে।': 'Registration completed successfully.',
+  'লগ আউট সফল হয়েছে।': 'Logged out successfully.',
+  'অ্যাকাউন্ট সফলভাবে মুছে ফেলা হয়েছে।': 'Account deleted successfully.',
+  'রক্তদানের তথ্য সফলভাবে যোগ হয়েছে।': 'Donation history added successfully.',
+  'রক্তদানের তথ্য সফলভাবে মুছে ফেলা হয়েছে।': 'Donation record deleted successfully.',
+  'রক্তের আবেদন সফলভাবে জমা হয়েছে।': 'Blood request submitted successfully.',
+  'আবেদনের অবস্থা সফলভাবে হালনাগাদ হয়েছে।': 'Request status updated successfully.',
+  'অনুভূতি সফলভাবে জমা হয়েছে।': 'Experience submitted successfully.',
+  'অনুভূতি সফলভাবে হালনাগাদ হয়েছে।': 'Experience updated successfully.',
+  'অনুভূতি সফলভাবে মুছে ফেলা হয়েছে।': 'Experience deleted successfully.',
+  'ব্লগ সফলভাবে তৈরি হয়েছে।': 'Blog created successfully.',
+  'ব্লগ সফলভাবে হালনাগাদ হয়েছে।': 'Blog updated successfully.',
+  'ব্লগ সফলভাবে মুছে ফেলা হয়েছে।': 'Blog deleted successfully.',
+  'বিভাগ সফলভাবে তৈরি হয়েছে।': 'Category created successfully.',
+  'বিভাগ সফলভাবে হালনাগাদ হয়েছে।': 'Category updated successfully.',
+  'বিভাগ সফলভাবে মুছে ফেলা হয়েছে।': 'Category deleted successfully.',
+  'মন্তব্য সফলভাবে পাঠানো হয়েছে।': 'Comment posted successfully.',
+  'মন্তব্য সফলভাবে হালনাগাদ হয়েছে।': 'Comment updated successfully.',
+  'মন্তব্য সফলভাবে মুছে ফেলা হয়েছে।': 'Comment deleted successfully.',
+  'প্রতিক্রিয়া সফলভাবে সংরক্ষিত হয়েছে।': 'Reaction saved successfully.',
+  'নোটিফিকেশন সফলভাবে হালনাগাদ হয়েছে।': 'Notification status updated successfully.',
+  'রক্তদাতা তথ্য সফলভাবে হালনাগাদ হয়েছে।': 'Donor information updated successfully.',
+  'রক্তদাতার তথ্য সফলভাবে মুছে ফেলা হয়েছে।': 'Donor information deleted successfully.',
+  'প্রশাসক অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।': 'Admin account created successfully.',
+  'প্রশাসক অ্যাকাউন্ট সফলভাবে হালনাগাদ হয়েছে।': 'Admin account updated successfully.',
+  'প্রশাসক অ্যাকাউন্ট সফলভাবে মুছে ফেলা হয়েছে।': 'Admin account deleted successfully.',
+  'অনুরোধটি সফলভাবে জমা হয়েছে।': 'Request submitted successfully.',
+  'অনুসন্ধানে {count} জন দাতা পাওয়া গেছে।': '{count} donors found.',
+  'অনুসন্ধানে কোনো দাতা পাওয়া যায়নি।': 'No donors matched your search.',
+  'প্রোফাইল শেয়ার করুন': 'Share profile',
+  'শেয়ার করার মাধ্যম': 'Sharing options',
+  'ডিভাইসের মাধ্যমে শেয়ার করুন': 'Share using your device',
+  'প্রোফাইল লিংক কপি করুন': 'Copy profile link',
+  'দাতার প্রোফাইল লিংক কপি হয়েছে।': 'Donor profile link copied.',
+  'প্রোফাইল লিংক কপি করা যায়নি। ব্রাউজারের clipboard permission যাচাই করে আবার চেষ্টা করুন।': 'Could not copy the profile link. Check browser clipboard permissions and try again.',
+  'প্রোফাইলটি শেয়ার করা যায়নি। আবার চেষ্টা করুন।': 'Could not share the profile. Please try again.',
+  'আহ্বান রক্তদান সংস্থার রক্তদাতা {name}-এর প্রোফাইল দেখুন।': 'Meet {name}, a blood donor from Ahoban Blood Donation Organization. Visit this profile to learn more.',
+  'দাতা {name}-এর প্রোফাইল ছবি': 'Profile photo of donor {name}',
   'নোটিফিকেশন': 'Notifications',
   'আপনার নোটিফিকেশন': 'Your notifications',
   'দাতা আপডেট': 'Donor updates',
@@ -56,6 +104,9 @@ const englishTranslations = {
   'ডার্ক মোড চালু করুন': 'Switch to dark mode',
   'লাইট মোড চালু করুন': 'Switch to light mode',
   'হোম': 'Home',
+  'মেনু': 'Menu',
+  'খুঁজুন': 'Search',
+  'অ্যাকাউন্ট': 'Account',
   'ব্লগ': 'Blog',
   'আহ্বান ব্লগ': 'Ahoban Blog',
   'আহ্বান থেকে জ্ঞান': 'Knowledge from Ahoban',
@@ -115,7 +166,6 @@ const englishTranslations = {
   'ব্লগ বিভাগ মুছে ফেলা যায়নি।': 'The blog category could not be deleted.',
   'ব্লগ বিভাগের অবস্থা হালনাগাদ করা যায়নি।': 'The blog category status could not be updated.',
   'আপনি কি এই ব্লগ বিভাগটি মুছে ফেলতে নিশ্চিত?': 'Are you sure you want to delete this blog category?',
-  'মুছে ফেলা হচ্ছে…': 'Deleting…',
   'এই বিভাগটি বিদ্যমান ব্লগ পোস্টে ব্যবহৃত হচ্ছে, তাই মুছে ফেলা যাবে না।': 'This category is used by existing blog posts and cannot be deleted.',
   'বিভাগটি পাওয়া যায়নি। তালিকা হালনাগাদ করে আবার চেষ্টা করুন।': 'The category was not found. Refresh the list and try again.',
   'A blog category with this name already exists.': 'A blog category with this name already exists.',
@@ -393,11 +443,6 @@ const englishTranslations = {
   'logged here': 'logged here',
   'Highest donor badge achieved': 'Highest donor badge achieved',
   'No donation history yet.': 'No donation history yet.',
-  'New Donor': 'New Donor',
-  'Bronze Donor': 'Bronze Donor',
-  'Silver Donor': 'Silver Donor',
-  'Gold Donor': 'Gold Donor',
-  'Platinum Donor': 'Platinum Donor',
   'অনুভূতি সম্পাদনা করুন': 'Edit your story',
   'আপনার অনুভূতি শেয়ার করুন': 'Share your story',
   'বর্তমান ছবি': 'Current photo',
@@ -460,7 +505,25 @@ const englishTranslations = {
   'পাসওয়ার্ড লিখুন।': 'Enter your password.',
   'অ্যাকাউন্ট নেই?': 'Don’t have an account?',
   'ব্যক্তিগত প্রোফাইল': 'Personal profile',
+  'আপনার প্রোফাইল': 'Your profile',
   'আপনার ব্যক্তিগত তথ্য ও donor-search সম্মতি দেখুন বা হালনাগাদ করুন।': 'View or update your personal information and donor-search consent.',
+  'আহ্বান দাতা প্রোফাইল': 'Ahoban donor profile',
+  'প্রোফাইলের সারাংশ': 'Profile summary',
+  'ব্যক্তিগত তথ্য': 'Personal information',
+  'গোপনীয়তা': 'Privacy',
+  'গোপনীয়তা ও সম্মতি': 'Privacy and consent',
+  'গোপন তথ্য': 'Private information',
+  'সর্বশেষ রক্তদানের তারিখ': 'Last donation date',
+  'প্রোফাইল ছবি {name}': 'Profile photo of {name}',
+  'অ্যাকাউন্ট সক্রিয়': 'Account active',
+  'অ্যাকাউন্ট নিষ্ক্রিয়': 'Account inactive',
+  'অবস্থান': 'Location',
+  'রক্তদানের সারাংশ': 'Donation summary',
+  'ছবির পূর্বরূপ': 'Photo preview',
+  'নতুন প্রোফাইল ছবির পূর্বরূপ': 'Preview of new profile photo',
+  'ছবি সংরক্ষণ': 'Save photo',
+  'নির্বাচিত ছবি বাতিল করুন': 'Discard selected photo',
+  'আপনার unsaved পরিবর্তন আছে। সেগুলো বাতিল করবেন?': 'You have unsaved changes. Discard them?',
   'নিরাপত্তার জন্য User ID পরিবর্তন করা যাবে না।': 'User ID cannot be changed for security reasons.',
   'উপজেলা (ঐচ্ছিক)': 'Upazila (optional)',
   'অনুমতি দিলে স্থানাঙ্ক সংরক্ষণ হবে; ঠিকানাটি নিজে লিখুন।': 'Coordinates are saved only with permission; enter your address yourself.',
@@ -546,7 +609,6 @@ const englishTranslations = {
   'ডেমো · তথ্য সংযুক্ত হয়নি': 'Demo · data not connected',
   'এখানে কোনো বাস্তব পরিসংখ্যান দেখানো হচ্ছে না। ব্যাকএন্ড ডেটা যুক্ত হলে মানগুলো হালনাগাদ হবে।': 'No live statistics are shown here. Values will update when backend data is connected.',
   'আরও দান করে': 'more to reach',
-  'পৌঁছান': '',
   'progress to': 'progress to',
   'maximum donor badge': 'maximum donor badge',
   'আবেদনটি সম্পন্ন করা যায়নি। তথ্যগুলো যাচাই করে আবার চেষ্টা করুন।': 'The request could not be completed. Check the information and try again.',
@@ -654,7 +716,6 @@ const englishTranslations = {
   'মন্তব্য সম্পাদনা': 'Edit comment',
   'সংরক্ষণ': 'Save',
   'সম্পাদনা': 'Edit',
-  'মুছুন': 'Delete',
   'আরও কমেন্ট দেখুন': 'Load more comments',
   'আপনার মন্তব্য': 'Your comment',
   'একটি মন্তব্য লিখুন…': 'Write a comment…',
@@ -739,12 +800,20 @@ const englishTranslations = {
   'দান': 'donations',
   'যোগদানের আগে': 'before joining',
   'এখানে নথিভুক্ত': 'logged here',
-  'আরও দানে': 'more to reach',
+  'পরবর্তী ব্যাজ পেতে আরও একটি রক্তদান করুন: {badge}': 'Make one more donation to earn the {badge} badge',
+  'পরবর্তী ব্যাজ পেতে আরও {count}টি রক্তদান করুন: {badge}': 'Make {count} more donations to earn the {badge} badge',
   'সর্বোচ্চ দাতা ব্যাজ অর্জিত': 'Highest donor badge achieved',
   'পরবর্তী ব্যাজের অগ্রগতি': 'Progress to next badge',
   'সর্বোচ্চ ব্যাজ': 'maximum donor badge',
   'রক্তদানের ইতিহাস': 'Donation History',
   'এখনও রক্তদানের ইতিহাস নেই।': 'No donation history yet.',
+  'আপনি কি এই রক্তদানের রেকর্ডটি মুছে ফেলতে চান?': 'Are you sure you want to delete this donation record?',
+  'রক্তদানের রেকর্ড মুছুন': 'Delete donation record',
+  'মুছুন': 'Delete',
+  'মুছে ফেলা হচ্ছে…': 'Deleting…',
+  'রক্তদানের রেকর্ড মুছে ফেলা হয়েছে এবং দাতা ব্যাজ হালনাগাদ হয়েছে।': 'Donation record deleted and donor badge updated.',
+  'রক্তদানের রেকর্ডটি পাওয়া যায়নি।': 'Donation record not found.',
+  'বৈধ রক্তদানের রেকর্ড নির্বাচন করুন।': 'Select a valid donation record.',
   'প্রোফাইল': 'Profile',
   'প্রোফাইল হালনাগাদ হয়েছে।': 'Profile updated.',
   'রক্তদানের তারিখ নথিভুক্ত হয়েছে।': 'Donation date recorded.',
@@ -1002,14 +1071,17 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.lang = language
-    document.title = language === 'bn'
-      ? 'আহ্বান রক্তদান সংস্থা | রক্ত দিন, জীবন বাঁচান'
-      : 'Ahoban Blood Donation Organization | Donate Blood, Save Lives'
-    const description = document.querySelector('meta[name="description"]')
-    if (description) {
-      description.content = language === 'bn'
-        ? 'আহ্বান রক্তদান সংস্থা — স্বেচ্ছায় রক্তদান, মানবতার বন্ধন।'
-        : 'Ahoban Blood Donation Organization — voluntary blood donation, a bond of humanity.'
+    const isPublicDonorProfile = /^\/donors\/[^/]+\/?$/.test(window.location.pathname)
+    if (!isPublicDonorProfile) {
+      document.title = language === 'bn'
+        ? 'আহ্বান রক্তদান সংস্থা | রক্ত দিন, জীবন বাঁচান'
+        : 'Ahoban Blood Donation Organization | Donate Blood, Save Lives'
+      const description = document.querySelector('meta[name="description"]')
+      if (description) {
+        description.content = language === 'bn'
+          ? 'আহ্বান রক্তদান সংস্থা — স্বেচ্ছায় রক্তদান, মানবতার বন্ধন।'
+          : 'Ahoban Blood Donation Organization — voluntary blood donation, a bond of humanity.'
+      }
     }
     try {
       localStorage.setItem(STORAGE_KEY, language)

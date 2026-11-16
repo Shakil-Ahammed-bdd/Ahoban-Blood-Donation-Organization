@@ -145,8 +145,8 @@ function BloodRequestsPage() {
       setFormOpen(false)
       setLoading(true)
       setNotice(tokenSaved
-        ? t('রক্তের আবেদনটি জমা হয়েছে। Admin অনুমোদনের পর এটি প্রকাশিত হবে।')
-        : `${t('রক্তের আবেদনটি জমা হয়েছে। Admin অনুমোদনের পর এটি প্রকাশিত হবে।')} ${t('এই ব্রাউজারে আবেদন পরিচালনার কোড সংরক্ষণ করা যায়নি; এই পেজ খোলা থাকা পর্যন্ত আবেদনটি পরিচালনা করতে পারবেন।')}`)
+        ? ''
+        : t('এই ব্রাউজারে আবেদন পরিচালনার কোড সংরক্ষণ করা যায়নি; এই পেজ খোলা থাকা পর্যন্ত আবেদনটি পরিচালনা করতে পারবেন।'))
       setPage(1)
       if (status !== 'active') setStatus('active')
       setBloodGroup('')
@@ -177,9 +177,7 @@ function BloodRequestsPage() {
       await bloodRequestApi.updateStatus(request.id, nextStatus, managementTokens[request.id])
       removeManagementToken(request.id)
       setLoading(true)
-      setNotice(nextStatus === 'fulfilled'
-        ? t('আবেদনটি পূরণ হয়েছে হিসেবে চিহ্নিত করা হয়েছে।')
-        : t('আবেদনটি বাতিল করা হয়েছে।'))
+      setNotice('')
       setRefreshVersion((value) => value + 1)
     } catch (requestError) {
       setError(translateErrorMessage(requestError, t))

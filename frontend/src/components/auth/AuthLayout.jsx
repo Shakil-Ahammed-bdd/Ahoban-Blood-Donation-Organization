@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../../contexts/useLanguage'
 
-function AuthLayout({ children, eyebrow, subtitle, title }) {
+function AuthLayout({ children, eyebrow, pageClassName = '', className = '', subtitle, title }) {
   const { t } = useLanguage()
   return (
-    <main className="auth-page">
-      <section aria-labelledby="auth-title" className="auth-card">
+    <main className={`auth-page ${pageClassName}`.trim()}>
+      <section aria-labelledby="auth-title" className={`auth-card ${className}`.trim()}>
         <Link aria-label={t('আহ্বান রক্তদান সংস্থা — হোমে ফিরুন')} className="auth-brand" to="/">
           <img alt="" height="48" src="/images/ahoban-logo.png" width="48" />
           <span><strong>{t('আহ্বান')}</strong><small>{t('রক্তদান সংস্থা')}</small></span>

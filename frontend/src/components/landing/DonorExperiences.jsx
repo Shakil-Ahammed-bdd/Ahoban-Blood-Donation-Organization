@@ -56,7 +56,6 @@ function DonorExperiences() {
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
   const [saving, setSaving] = useState(false)
-  const [notice, setNotice] = useState('')
   const submitting = useRef(false)
   const previews = useMemo(
     () => photos.map((file) => ({ file, url: URL.createObjectURL(file) })),
@@ -168,7 +167,6 @@ function DonorExperiences() {
     }
     setError('')
     setFieldErrors({})
-    setNotice('')
     setPhotos([])
     setRetainedImages([])
     setForm({ message: '', donationDate: '', donationCount: '', publicConsent: false })
@@ -178,7 +176,6 @@ function DonorExperiences() {
   function openEdit(experience) {
     setError('')
     setFieldErrors({})
-    setNotice('')
     setPhotos([])
     setRetainedImages(experience.images?.length ? experience.images : [experience.photoUrl].filter(Boolean))
     setForm({
@@ -281,11 +278,12 @@ function DonorExperiences() {
     if (modal.experience) payload.set('existingImages', JSON.stringify(retainedImages))
     photos.forEach((photo) => payload.append('photos', photo))
 
-    let result
     try {
-      result = modal.experience
-        ? await experienceApi.update(modal.experience.id, payload)
-        : await experienceApi.create(payload)
+      if (modal.experience) {
+        await experienceApi.update(modal.experience.id, payload)
+      } else {
+        await experienceApi.create(payload)
+      }
     } catch (requestError) {
       setError(getSubmitErrorMessage(requestError, t))
       setFieldErrors(requestError.fieldErrors || {})
@@ -300,7 +298,6 @@ function DonorExperiences() {
     setPhotos([])
     setRetainedImages([])
     setFieldErrors({})
-    setNotice(t(result.message))
     try {
       await refreshExperiences()
       setLoadError('')
@@ -316,7 +313,6 @@ function DonorExperiences() {
       await experienceApi.delete(experience.id)
       await refreshExperiences()
       if (modal?.type === 'view' && modal.experienceId === experience.id) closeExperience()
-      setNotice(t('আপনার অনুভূতি মুছে ফেলা হয়েছে।'))
     } catch (requestError) {
       setError(translateErrorMessage(requestError, t))
     }
@@ -341,7 +337,6 @@ function DonorExperiences() {
           </header>
         </Reveal>
 
-        {notice && <p aria-live="polite" className="experience-notice" role="status">{t(notice)}</p>}
         {error && !modal && <p aria-live="polite" className="experience-error" role="alert">{t(error)}</p>}
 
         {loading && <p className="experience-state" role="status">{t('দাতাদের অনুভূতি লোড হচ্ছে…')}</p>}

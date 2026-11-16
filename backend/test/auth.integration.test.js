@@ -284,6 +284,7 @@ test('registration, profiles, donor search, and cookie-based authentication life
       }),
     })
     assert.equal(profileUpdate.status, 200)
+    assert.equal(profileUpdate.headers.get('cache-control'), 'no-store')
     const updatedProfile = await profileUpdate.json()
     assert.equal(updatedProfile.user.fullName, 'Updated Test Donor')
     assert.equal(updatedProfile.user.location, 'উত্তরা')
@@ -475,6 +476,94 @@ test('registration, profiles, donor search, and cookie-based authentication life
       newerLoggedProfile.donorBadge.donationHistory.map(({ date }) => date),
       [dateFromToday(119), firstLoggedDate, dateFromToday(140)],
     )
+
+    const newestDonationRecord = newerLoggedProfile.donorBadge.donationHistory[0]
+    const unauthenticatedDonationDelete = await fetch(
+      `${baseUrl}/api/users/profile/donation-history/${newestDonationRecord.id}`,
+      { method: 'DELETE', headers: { origin: clientOrigin } },
+    )
+    assert.equal(unauthenticatedDonationDelete.status, 401)
+
+    const otherUserDonationDelete = await fetch(
+      `${baseUrl}/api/users/profile/donation-history/${newestDonationRecord.id}`,
+      {
+        method: 'DELETE',
+        headers: { cookie: sessionCookie, origin: clientOrigin },
+      },
+    )
+    assert.equal(otherUserDonationDelete.status, 404)
+    const privateProfileAfterRejectedDelete = await fetch(`${baseUrl}/api/users/profile`, {
+      headers: { cookie: privateCookie },
+    }).then((response) => response.json()).then(({ user }) => user)
+    assert.equal(privateProfileAfterRejectedDelete.donorBadge.totalDonations, 3)
+
+    async function deleteDonationRecord(recordId) {
+      return fetch(`${baseUrl}/api/users/profile/donation-history/${recordId}`, {
+        method: 'DELETE',
+        headers: { cookie: privateCookie, origin: clientOrigin },
+      })
+    }
+    const deletedNewestDonation = await deleteDonationRecord(newestDonationRecord.id)
+    assert.equal(deletedNewestDonation.status, 200)
+    const profileAfterNewestDelete = (await deletedNewestDonation.json()).user
+    assert.equal(profileAfterNewestDelete.donorBadge.totalDonations, 2)
+    assert.equal(profileAfterNewestDelete.donorBadge.badge, 'Bronze Donor')
+    assert.deepEqual(
+      profileAfterNewestDelete.donorBadge.donationHistory.map(({ date }) => date),
+      [firstLoggedDate, dateFromToday(140)],
+    )
+    assert.equal(profileAfterNewestDelete.lastDonationDate.slice(0, 10), firstLoggedDate)
+    const storedProfileAfterNewestDelete = await User.findById(privateUser.user.id).lean()
+    assert.equal(
+      storedProfileAfterNewestDelete.donationHistory.some(
+        ({ _id }) => String(_id) === newestDonationRecord.id,
+      ),
+      false,
+    )
+    assert.equal(storedProfileAfterNewestDelete.donationHistory.length, 2)
+    await User.updateOne({ _id: privateUser.user.id }, { $set: { isSearchable: true } })
+    const publicProfileAfterDonationDelete = await fetch(
+      `${baseUrl}/api/users/${privateUser.user.id}/profile`,
+    ).then((response) => response.json()).then(({ user }) => user)
+    assert.equal(publicProfileAfterDonationDelete.donorBadge.totalDonations, 2)
+    assert.equal(publicProfileAfterDonationDelete.donorBadge.badge, 'Bronze Donor')
+    assert.equal(publicProfileAfterDonationDelete.lastDonationDate.slice(0, 10), firstLoggedDate)
+    const donorListAfterDonationDelete = await fetch(`${baseUrl}/api/donors?availability=all&limit=50`)
+      .then((response) => response.json())
+    const listedPrivateDonor = donorListAfterDonationDelete.donors.find(
+      ({ id }) => id === privateUser.user.id,
+    )
+    assert.equal(listedPrivateDonor.donorBadge.totalDonations, 2)
+    await User.updateOne({ _id: privateUser.user.id }, { $set: { isSearchable: false } })
+
+    const repeatedDonationDelete = await deleteDonationRecord(newestDonationRecord.id)
+    assert.equal(repeatedDonationDelete.status, 404)
+    const remainingDonationIds = profileAfterNewestDelete.donorBadge.donationHistory.map(({ id }) => id)
+    for (const recordId of remainingDonationIds) {
+      const deletedDonation = await deleteDonationRecord(recordId)
+      assert.equal(deletedDonation.status, 200)
+    }
+    const refreshedPrivateProfile = await fetch(`${baseUrl}/api/users/profile`, {
+      headers: { cookie: privateCookie },
+    }).then((response) => response.json()).then(({ user }) => user)
+    assert.equal(refreshedPrivateProfile.donorBadge.totalDonations, 0)
+    assert.equal(refreshedPrivateProfile.donorBadge.badge, 'New Donor')
+    assert.deepEqual(refreshedPrivateProfile.donorBadge.donationHistory, [])
+    assert.equal(refreshedPrivateProfile.lastDonationDate, null)
+    await User.updateOne({ _id: privateUser.user.id }, { $set: { isSearchable: true } })
+    const publicPrivateProfileResponse = await fetch(
+      `${baseUrl}/api/users/${privateUser.user.id}/profile`,
+    )
+    assert.equal(publicPrivateProfileResponse.headers.get('cache-control'), 'no-store')
+    const publicPrivateProfile = (await publicPrivateProfileResponse.json()).user
+    assert.equal(publicPrivateProfile.donorBadge.totalDonations, 0)
+    assert.equal(publicPrivateProfile.donorBadge.badge, 'New Donor')
+    assert.equal(publicPrivateProfile.lastDonationDate, null)
+    const publicDonorList = await fetch(`${baseUrl}/api/donors?availability=all&limit=50`)
+      .then((response) => response.json())
+    const refreshedPublicDonor = publicDonorList.donors.find(({ id }) => id === privateUser.user.id)
+    assert.equal(refreshedPublicDonor.donorBadge.totalDonations, 0)
+    await User.updateOne({ _id: privateUser.user.id }, { $set: { isSearchable: false } })
 
     const publicExperiences = await fetch(`${baseUrl}/api/experiences`)
     assert.equal(publicExperiences.status, 200)
@@ -838,6 +927,7 @@ test('registration, profiles, donor search, and cookie-based authentication life
 
     const publicDonorProfile = await fetch(`${baseUrl}/api/users/${registered.user.id}/profile`)
     assert.equal(publicDonorProfile.status, 200)
+    assert.equal(publicDonorProfile.headers.get('cache-control'), 'no-store')
     const publicDonorData = (await publicDonorProfile.json()).user
     assert.equal(publicDonorData.donorBadge.badge, 'Silver Donor')
     assert.equal(publicDonorData.donorBadge.totalDonations, 4)
@@ -845,13 +935,24 @@ test('registration, profiles, donor search, and cookie-based authentication life
     assert.equal('loggedDonationCount' in publicDonorData.donorBadge, false)
     assert.equal('previousBloodDonations' in publicDonorData.donorBadge, false)
     assert.equal(publicDonorData.profilePhotoUrl, profilePhotoUrl)
+    assert.equal(publicDonorData.fullName, 'Updated Test Donor')
     assert.equal('email' in publicDonorData, false)
     assert.equal(publicDonorData.phone, '01812345678')
     assert.equal(publicDonorData.whatsappNumber, userDetails.whatsappNumber)
+    assert.equal(publicDonorData.bloodGroup, 'B+')
+    assert.equal(publicDonorData.location, 'উত্তরা')
+    assert.equal(publicDonorData.donorBadge.totalDonations, 4)
     assert.equal(publicDonorData.upazila, userDetails.upazila)
     assert.equal(publicDonorData.previousBloodDonations, userDetails.previousBloodDonations)
     assert.equal('latitude' in publicDonorData, false)
     assert.equal('longitude' in publicDonorData, false)
+    const updatedDonorList = await fetch(
+      `${baseUrl}/api/donors?bloodGroup=B%2B&availability=all&limit=50`,
+    ).then((response) => response.json())
+    const updatedListedDonor = updatedDonorList.donors.find(({ id }) => id === registered.user.id)
+    assert.equal(updatedListedDonor.fullName, 'Updated Test Donor')
+    assert.equal(updatedListedDonor.location, 'উত্তরা')
+    assert.equal(updatedListedDonor.donorBadge.totalDonations, 4)
     const donorProfileExperiences = await fetch(`${baseUrl}/api/users/${registered.user.id}/experiences`)
     assert.equal((await donorProfileExperiences.json()).experiences[0].id, createdExperience.id)
 

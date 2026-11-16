@@ -7,7 +7,8 @@ const { toPublicUser } = require('./auth.service')
 const { removeAvatar, storeAvatar } = require('./experience-image-storage')
 const { deleteUserInteractions } = require('./experience-social.service')
 const { isAvailableToDonate } = require('../utils/donation-eligibility')
-const { badgeSummary, getDonorBadge } = require('./donor-badge.service')
+const { badgeSummary } = require('./donor-badge.service')
+const { calculateDonorBadge } = require('../utils/donor-badge')
 const { approvedExperienceCriteria } = require('../utils/experience-status')
 const { invalidateLiveImpactCache } = require('./stats.service')
 
@@ -18,7 +19,10 @@ function ensureDatabase() {
 }
 
 async function toProfileUser(user) {
-  const donorBadge = await getDonorBadge(user._id, user.previousBloodDonations)
+  const donorBadge = calculateDonorBadge(
+    user.previousBloodDonations,
+    user.donationHistory || [],
+  )
   return { ...toPublicUser(user), donorBadge }
 }
 
@@ -35,7 +39,7 @@ async function getPublicProfile(identifier) {
     ? { _id: identifier }
     : { userId: String(identifier).toUpperCase() }
   const user = await User.findOne(query)
-    .select('userId fullName phone whatsappNumber isContactPublic bloodGroup division district upazila location lastDonationDate previousBloodDonations isSearchable profilePhotoUrl createdAt')
+    .select('userId fullName phone whatsappNumber isContactPublic bloodGroup division district upazila location lastDonationDate previousBloodDonations donationHistory isSearchable profilePhotoUrl createdAt')
     .lean()
   if (!user) throw new HttpError(404, 'PROFILE_NOT_FOUND', 'The public donor profile was not found.')
 
@@ -52,6 +56,10 @@ async function getPublicProfile(identifier) {
       throw new HttpError(404, 'PROFILE_NOT_FOUND', 'The public donor profile was not found.')
     }
   }
+  const donorBadge = badgeSummary(calculateDonorBadge(
+    user.previousBloodDonations,
+    user.donationHistory || [],
+  ))
   return {
     id: String(user._id),
     userId: user.userId,
@@ -73,9 +81,7 @@ async function getPublicProfile(identifier) {
           lastDonationDate: user.lastDonationDate || null,
           previousBloodDonations: user.previousBloodDonations || 0,
           isAvailableToDonate: isAvailableToDonate(user.lastDonationDate),
-          donorBadge: badgeSummary(
-            await getDonorBadge(user._id, user.previousBloodDonations),
-          ),
+          donorBadge,
           createdAt: user.createdAt,
         }
       : { limitedPublicProfile: true }),
@@ -129,6 +135,90 @@ async function logDonationDate(userId, donationDate) {
   return toProfileUser(refreshedUser)
 }
 
+async function deleteDonationDate(userId, donationRecordId) {
+  ensureDatabase()
+  if (!mongoose.isValidObjectId(donationRecordId)) {
+    throw new HttpError(400, 'INVALID_DONATION_RECORD', 'বৈধ রক্তদানের রেকর্ড নির্বাচন করুন।')
+  }
+
+  const recordId = new mongoose.Types.ObjectId(donationRecordId)
+  const user = await User.findOneAndUpdate(
+    {
+      _id: userId,
+      'donationHistory._id': recordId,
+    },
+    [
+      {
+        $set: {
+          _deletedDonation: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: { $ifNull: ['$donationHistory', []] },
+                  as: 'record',
+                  cond: { $eq: ['$$record._id', recordId] },
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $set: {
+          donationHistory: {
+            $filter: {
+              input: { $ifNull: ['$donationHistory', []] },
+              as: 'record',
+              cond: { $ne: ['$$record._id', recordId] },
+            },
+          },
+        },
+      },
+      {
+        $set: {
+          lastDonationDate: {
+            $cond: [
+              {
+                $eq: [
+                  {
+                    $dateToString: {
+                      date: '$lastDonationDate',
+                      format: '%Y-%m-%d',
+                      timezone: 'UTC',
+                    },
+                  },
+                  {
+                    $dateToString: {
+                      date: '$_deletedDonation.donationDate',
+                      format: '%Y-%m-%d',
+                      timezone: 'UTC',
+                    },
+                  },
+                ],
+              },
+              {
+                $ifNull: [
+                  { $max: '$donationHistory.donationDate' },
+                  null,
+                ],
+              },
+              '$lastDonationDate',
+            ],
+          },
+        },
+      },
+      { $unset: '_deletedDonation' },
+    ],
+    { returnDocument: 'after', updatePipeline: true },
+  )
+
+  if (!user) {
+    throw new HttpError(404, 'DONATION_RECORD_NOT_FOUND', 'রক্তদানের রেকর্ডটি পাওয়া যায়নি।')
+  }
+  return toProfileUser(user)
+}
+
 async function updateProfilePhoto(userId, file) {
   ensureDatabase()
   const currentUser = await User.findById(userId).select('profilePhotoUrl')
@@ -147,7 +237,11 @@ async function updateProfilePhoto(userId, file) {
     await removeAvatar(imageUrl)
     throw error
   }
-  await removeAvatar(previousImage)
+  try {
+    await removeAvatar(previousImage)
+  } catch (error) {
+    console.error('Previous profile photo cleanup failed after the new photo was saved.', error)
+  }
   return toProfileUser(user)
 }
 
@@ -166,6 +260,7 @@ async function deleteProfile(userId) {
 
 module.exports = {
   deleteProfile,
+  deleteDonationDate,
   getProfile,
   getPublicProfile,
   logDonationDate,

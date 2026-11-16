@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Bell } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/useAuth'
 import { useLanguage } from '../contexts/useLanguage'
 import { translateErrorMessage } from '../contexts/translationUtils'
 import { notificationApi } from '../services/api/notificationApi'
 
-function NotificationBell() {
+function NotificationBell({ mobile = false }) {
   const { t } = useLanguage()
+  const { status } = useAuth()
+  const authenticated = status === 'authenticated'
   const navigate = useNavigate()
   const rootRef = useRef(null)
   const [open, setOpen] = useState(false)
@@ -16,6 +20,7 @@ function NotificationBell() {
   const [saving, setSaving] = useState(false)
 
   const loadNotifications = useCallback(async () => {
+    setLoading(true)
     try {
       const result = await notificationApi.list({ page: 1, limit: 5 })
       setNotifications(result.notifications || [])
@@ -29,8 +34,8 @@ function NotificationBell() {
   }, [t])
 
   useEffect(() => {
-    void Promise.resolve().then(loadNotifications)
-  }, [loadNotifications])
+    if (authenticated) void Promise.resolve().then(loadNotifications)
+  }, [authenticated, loadNotifications])
 
   useEffect(() => {
     function closeOutside(event) {
@@ -40,7 +45,7 @@ function NotificationBell() {
       if (event.key === 'Escape') setOpen(false)
     }
     function refresh() {
-      void loadNotifications()
+      if (authenticated) void loadNotifications()
     }
     document.addEventListener('pointerdown', closeOutside)
     window.addEventListener('keydown', closeOnEscape)
@@ -50,7 +55,7 @@ function NotificationBell() {
       window.removeEventListener('keydown', closeOnEscape)
       window.removeEventListener('ahoban-notifications-updated', refresh)
     }
-  }, [loadNotifications])
+  }, [authenticated, loadNotifications])
 
   async function markAllRead() {
     if (!unreadCount || saving) return
@@ -85,23 +90,27 @@ function NotificationBell() {
   }
 
   return (
-    <div className="notification-bell" ref={rootRef}>
+    <div className={`notification-bell${mobile ? ' mobile-notification-bell' : ''}`} ref={rootRef}>
       <button
         aria-expanded={open}
         aria-label={t('নোটিফিকেশন')}
-        className="notification-bell-trigger"
+        className={`notification-bell-trigger${mobile ? ' mobile-notification-trigger' : ''}`}
         onClick={() => {
+          if (!authenticated) {
+            navigate('/login')
+            return
+          }
           setOpen((current) => !current)
           if (!open) void loadNotifications()
         }}
         type="button"
       >
-        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
-          <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" />
-        </svg>
-        {unreadCount > 0 && <span className="notification-bell-count">{unreadCount > 99 ? '99+' : unreadCount}</span>}
+        <Bell aria-hidden="true" size={18} strokeWidth={2.2} />
+        {authenticated && unreadCount > 0 && (
+          <span className="notification-bell-count">{unreadCount > 99 ? '99+' : unreadCount}</span>
+        )}
       </button>
-      {open && (
+      {open && authenticated && (
         <section aria-label={t('নোটিফিকেশন')} className="notification-bell-panel">
           <header className="notification-bell-heading">
             <div>

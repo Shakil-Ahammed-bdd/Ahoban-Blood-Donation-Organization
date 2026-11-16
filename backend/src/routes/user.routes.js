@@ -1,6 +1,7 @@
 const express = require('express')
 const {
   addDonationDate,
+  removeDonationDate,
   editProfile,
   editProfilePhoto,
   readProfile,
@@ -20,6 +21,7 @@ router.get('/:id/experiences', optionalAuthenticate, readPublicExperiences)
 router.use(authenticate)
 router.get('/profile', readProfile)
 router.post('/profile/donation-history', verifyOrigin, addDonationDate)
+router.delete('/profile/donation-history/:recordId', verifyOrigin, removeDonationDate)
 router.put('/profile/photo', verifyOrigin, profilePhotoUpload, editProfilePhoto)
 router.patch('/profile', verifyOrigin, editProfile)
 router.delete('/profile', verifyOrigin, removeProfile)
