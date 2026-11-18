@@ -1,12 +1,10 @@
 .blood-donation-illustration {
   --illustration-size: 540px;
-  --tube-flow-duration: 1.8s;
-  --bag-fill-duration: 6s;
   position: relative;
   display: block;
   width: 100%;
   max-width: var(--illustration-size);
-  aspect-ratio: 1065 / 768;
+  aspect-ratio: 588 / 424;
   overflow: hidden;
   line-height: 0;
 }
@@ -16,109 +14,4 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-.blood-donation-illustration__overlay {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.blood-donation-illustration__flow {
-  fill: none;
-  stroke: #f24452;
-  stroke-dasharray: 6 13;
-  stroke-linecap: round;
-  stroke-width: 3;
-  opacity: .9;
-  animation: donation-tube-flow var(--tube-flow-duration) linear infinite;
-}
-
-.blood-donation-illustration__bag-fill-mask {
-  fill: #fff;
-  transform-box: fill-box;
-  transform-origin: center top;
-  animation: donation-bag-fill var(--bag-fill-duration) cubic-bezier(.45, 0, .2, 1) 1 forwards;
-}
-
-.blood-donation-illustration__fill-surface {
-  fill: none;
-  stroke: #f4c3c3;
-  stroke-linecap: round;
-  stroke-width: 5;
-  opacity: .9;
-}
-
-.blood-donation-illustration__bag-surface {
-  fill: none;
-  stroke: #ff8e98;
-  stroke-dasharray: 10 12;
-  stroke-linecap: round;
-  stroke-width: 3;
-  opacity: .62;
-  animation: donation-surface-shimmer 2.6s linear infinite;
-  animation-delay: var(--bag-fill-duration);
-}
-
-.blood-donation-illustration__pulse {
-  fill: none;
-  stroke: #f24452;
-  stroke-width: 3;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: donation-connection-pulse 2s ease-out infinite;
-}
-
-.blood-donation-illustration__pulse--bag-left {
-  animation-delay: -.5s;
-}
-
-.blood-donation-illustration__pulse--bag-right {
-  animation-delay: -1s;
-}
-
-.blood-donation-illustration__pulse--receiver {
-  animation-delay: -1.5s;
-}
-
-@keyframes donation-tube-flow {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: -38; }
-}
-
-@keyframes donation-bag-fill {
-  from { opacity: 1; transform: scaleY(1); }
-  to { opacity: 0; transform: scaleY(0); }
-}
-
-@keyframes donation-surface-shimmer {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: -44; }
-}
-
-@keyframes donation-connection-pulse {
-  0% { opacity: .8; transform: scale(.65); }
-  100% { opacity: 0; transform: scale(2.2); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .blood-donation-illustration__flow,
-  .blood-donation-illustration__bag-surface,
-  .blood-donation-illustration__pulse {
-    animation: none;
-  }
-
-  .blood-donation-illustration__bag-fill-mask {
-    display: none;
-    animation: none;
-  }
-
-  .blood-donation-illustration__bag-surface {
-    display: none;
-  }
 }
