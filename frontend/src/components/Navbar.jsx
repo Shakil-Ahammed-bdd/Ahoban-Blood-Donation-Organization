@@ -360,7 +360,7 @@ function Navbar() {
                 </>
               ) : (
                 <>
-                  <Link className="mobile-drawer-link" onClick={closeMenu} to="/login">{t('লগ ইন')}</Link>
+                  <Link className="mobile-drawer-link mobile-drawer-login" onClick={closeMenu} to="/login">{t('লগ ইন')}</Link>
                   <Link className="mobile-drawer-link mobile-drawer-register" onClick={closeMenu} to="/register">{t('নিবন্ধন')}</Link>
                 </>
               )}
