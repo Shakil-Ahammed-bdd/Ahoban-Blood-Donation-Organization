@@ -235,7 +235,6 @@ function Navbar() {
             ) : status === 'unauthenticated' ? (
               <div className="nav-guest-actions">
                 <Link className="nav-login-link" to="/login">{t('লগ ইন')}</Link>
-                <Link className="nav-register-link" to="/register">{t('নিবন্ধন করুন')}</Link>
               </div>
             ) : null}
           </div>

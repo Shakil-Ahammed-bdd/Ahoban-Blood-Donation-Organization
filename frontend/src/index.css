@@ -863,6 +863,13 @@ html[data-theme="dark"] .hero-branding-slogan {
   color: white;
 }
 
+@media (min-width: 701px) {
+  .nav-login-link {
+    background: var(--red);
+    color: #FFFFFF;
+  }
+}
+
 .nav-profile {
   position: relative;
 }
